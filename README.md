@@ -1,120 +1,163 @@
 # JobBuff (职场外挂) 🎮
 
-> 一站式 AI 求职辅助工具 —— "读得透、改得快、记得住"
+> 一站式 AI 求职辅助工具 —— **"读得透、改得快、记得住"**
 
-## 📖 项目简介
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20DB-3ECF8E?logo=supabase)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)](https://vercel.com/)
 
-JobBuff 是一个**游戏化全链路求职辅助工具**，帮助求职者：
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="JobBuff Demo" width="600">
+</p>
 
-1. **情报侦察** 📡 —— 深度解析 JD，识别隐藏要求和风险信号
-2. **装备锻造** 🔨 —— AI 全权代笔重写简历，生成句子级 Diff
-3. **试炼挑战** ⚔️ —— 生成模拟面试题，提供 AI 点评
+## ✨ 产品亮点
+
+仅需 **10 秒**，即可将一份 Raw JD 转化为包含**风险预警、定制简历与面试攻略**的全套作战方案，以"打怪升级"的轻松心态消解求职内耗。
+
+---
 
 ## 🎯 核心功能
 
 | 阶段 | 功能 | 描述 |
-| :--- | :--- | :--- |
-| 阶段 1 | 接取任务 | 上传简历 + 粘贴 JD |
-| 阶段 2 | 情报侦察 | JD 洞察 + 匹配度评分 + 雷达图 |
-| 阶段 3 | 装备锻造 | 简历重写 + 句子级 Diff + PDF 导出 |
-| 阶段 4 | 试炼挑战 | 投递策略 + 话术 + 面试题 |
-| 阶段 5 | 冒险日志 | 历史任务管理 + 数据可视化 |
+| :---: | :--- | :--- |
+| 📝 | **接取任务** | 粘贴 JD + 上传简历，一键开启分析 |
+| 📡 | **情报侦察** | JD 深度解析 + 风险雷达 + 匹配度评分 (雷达图) |
+| 🔨 | **装备锻造** | AI 全权代笔简历重写 + 句子级 Diff + PDF 导出 |
+| ⚔️ | **试炼挑战** | 投递策略分档 + 3 种话术 + 5 道面试题 + AI 点评 |
+| 📜 | **冒险日志** | 任务历史管理 + 战绩统计 + 数据可视化 |
 
-## 🔄 数据流转 (Data Flow)
+---
 
-```mermaid
-graph TD
-    User((👤 User))
-    
-    subgraph Inputs [输入数据]
-        Resume[📄 原始简历]
-        JD[📋 JD 文本]
-        Pref[⚙️ 投递意向]
-    end
-    
-    subgraph JobBuff_Engine [JobBuff 核心引擎]
-        direction TB
-        Scan(📡 阶段1: 情报侦察)
-        Forge(🔨 阶段2: 装备锻造)
-        Trial(⚔️ 阶段3: 试炼挑战)
-    end
-    
-    subgraph Outputs [输出资产]
-        Report[📊 匹配报告 & 风险雷达]
-        NewCV[✨ 定制化简历]
-        Scripts[🎤 面试话术 & 模拟题]
-        DB[(💾 冒险日志 DB)]
-    end
+## 🛠️ 技术栈
 
-    User --> Inputs
-    Resume & JD & Pref --> Scan
-    Scan --> Report
-    
-    Report -.-> Forge
-    Resume & Scan --> Forge
-    Forge --> NewCV
-    
-    NewCV -.-> Trial
-    JD --> Trial
-    Trial --> Scripts
-    
-    Report & NewCV & Scripts -.-> DB
+| 层级 | 技术 |
+| :--- | :--- |
+| **前端** | Next.js 16 + React 19 + CSS Modules |
+| **后端** | Next.js API Routes (Serverless) |
+| **数据库** | Supabase (PostgreSQL + Auth) |
+| **AI** | Gemini 3 Flash Preview (via AIHubMix) |
+| **部署** | Vercel |
+| **UI 风格** | 像素游戏风 (Pixel Art) |
+
+---
+
+## 🚀 快速开始
+
+### 前置要求
+
+- Node.js 18+
+- Supabase 账号 (免费)
+- LLM API Key (支持 OpenAI/Gemini/Claude 等)
+
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/your-username/JobBuff.git
+cd JobBuff/frontend
 ```
+
+### 2. 安装依赖
+
+```bash
+npm install
+```
+
+### 3. 配置环境变量
+
+复制 `.env.example` 为 `.env.local` 并填写：
+
+```env
+# LLM 配置
+LLM_API_KEY=sk-xxxxx
+LLM_BASE_URL=https://aihubmix.com/v1
+LLM_MODEL=gemini-3-flash-preview
+
+# Supabase 配置
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+```
+
+### 4. 初始化 Supabase 数据库
+
+在 Supabase SQL Editor 执行 [docs/sql/init.sql](docs/sql/init.sql) 创建表结构。
+
+### 5. 启动开发服务器
+
+```bash
+npm run dev
+```
+
+访问 <http://localhost:3000> 开始使用！
+
+---
 
 ## 📂 项目结构
 
 ```
 JobBuff/
-├── .agent/
-│   └── skills/           # AI Prompts (Antigravity Skills)
-│       ├── jobbuff-intel/        # 情报侦察 (合并版)
-│       ├── jobbuff-resume-forge/ # 简历锻造
-│       ├── jobbuff-action-plan/  # 投递策略
-│       ├── jobbuff-interview/    # 模拟面试
-│       └── ui-ux-pro-max/        # UI/UX 设计助手
-├── docs/                 # 产品文档
-│   ├── PRD_岗位智能分析助手.md
-│   ├── UI_UX_Design_JobBuff.md
-│   ├── Prompt_Design_JobBuff.md
-│   ├── Development_Plan.md
-│   └── 用户故事_岗位智能分析助手.md
-└── README.md
+├── frontend/                 # Next.js 前端应用
+│   ├── app/                  # App Router 页面
+│   │   ├── api/              # API Routes
+│   │   ├── quest/            # 任务相关页面
+│   │   ├── log/              # 冒险日志页面
+│   │   └── login/            # 登录页面
+│   ├── components/           # React 组件
+│   │   ├── ui/               # 通用 UI 组件
+│   │   ├── shared/           # 布局组件
+│   │   └── features/         # 业务组件
+│   └── lib/                  # 工具函数
+│       ├── supabase/         # Supabase 客户端
+│       └── prompts.ts        # AI Prompts
+├── docs/                     # 产品文档
+└── .agent/skills/            # AI Skill 定义
 ```
 
-## 🛠️ 技术栈 (规划)
+---
 
-- **前端**: Next.js + TailwindCSS
-- **后端**: Supabase Edge Functions
-- **AI**: Gemini Pro API
-- **部署**: Vercel
+## 🔄 数据流转
 
-## 🚀 快速开始
-
-> 🚧 项目开发中...
-
-```bash
-# 克隆项目
-git clone https://github.com/your-username/JobBuff.git
-
-# 安装依赖
-cd JobBuff
-npm install
-
-# 启动开发服务器
-npm run dev
+```mermaid
+graph LR
+    A[📄 简历 + 📋 JD] --> B[📡 情报侦察]
+    B --> C{继续?}
+    C -->|是| D[🔨 装备锻造]
+    C -->|否| E[📜 归档]
+    D --> F[⚔️ 试炼挑战]
+    F --> G[📜 冒险日志]
 ```
 
-## 📄 文档
+---
 
-- [PRD 产品需求文档](./docs/PRD_岗位智能分析助手.md)
-- [UI/UX 设计文档](./docs/UI_UX_Design_JobBuff.md)
-- [Prompt 设计文档](./docs/Prompt_Design_JobBuff.md)
-- [开发计划](./docs/Development_Plan.md)
+## 🔐 用户系统
+
+- **邮箱密码登录** (Supabase Auth)
+- **免费额度**: 每用户 10 次分析
+- **数据隔离**: 行级安全策略 (RLS)
+
+---
+
+## 📄 相关文档
+
+| 文档 | 描述 |
+| :--- | :--- |
+| [PRD 产品需求文档](./docs/PRD_岗位智能分析助手.md) | 完整功能需求 |
+| [UI/UX 设计文档](./docs/UI_UX_Design_JobBuff.md) | 设计规范 |
+| [Prompt 设计文档](./docs/Prompt_Design_JobBuff.md) | AI Prompt 设计 |
+
+---
 
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
+---
+
 ## 📄 License
 
 MIT License
+
+---
+
+<p align="center">
+  Made with ❤️ by JobBuff Team
+</p>

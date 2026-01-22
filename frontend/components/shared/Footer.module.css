@@ -1,0 +1,58 @@
+/* ==========================================================================
+   Footer Component Styles - Minimal Retro
+   ========================================================================== */
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    background-color: var(--color-ink-black);
+    color: var(--color-pixel-gray);
+    border-top: var(--border-default);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+.footer__copyright {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.footer__copyright-icon {
+    color: var(--color-buff-orange);
+}
+
+.footer__links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+.footer__link {
+    color: var(--color-pixel-gray);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.footer__link:hover {
+    color: var(--color-buff-orange);
+}
+
+.footer__version {
+    color: var(--color-pixel-gray-dark);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .footer {
+        flex-direction: column;
+        gap: var(--space-sm);
+        text-align: center;
+    }
+
+    .footer__links {
+        gap: var(--space-md);
+    }
+}

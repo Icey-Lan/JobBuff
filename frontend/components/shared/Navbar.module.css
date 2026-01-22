@@ -1,0 +1,167 @@
+/* ==========================================================================
+   Navbar Component Styles - Game HUD Style
+   ========================================================================== */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    background-color: var(--color-card-white);
+    border-bottom: var(--border-default);
+    box-shadow: 0 2px 0 var(--color-ink-black);
+}
+
+/* Logo */
+.navbar__logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--color-ink-black);
+    text-decoration: none;
+    transition: transform var(--transition-fast);
+}
+
+.navbar__logo:hover {
+    transform: translateY(-1px);
+}
+
+.navbar__logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: var(--color-buff-orange);
+    border: var(--border-default);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar__logo-text {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+}
+
+.navbar__logo-text span {
+    color: var(--color-buff-orange);
+}
+
+/* Navigation */
+.navbar__nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.navbar__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--color-ink-black);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: var(--space-xs) var(--space-sm);
+    border: 2px solid transparent;
+    transition: all var(--transition-fast);
+}
+
+.navbar__link:hover {
+    color: var(--color-buff-orange);
+    border-bottom-color: var(--color-buff-orange);
+}
+
+.navbar__link--active {
+    color: var(--color-buff-orange);
+    border-bottom-color: var(--color-buff-orange);
+}
+
+/* Quota Indicator */
+.navbar__quota {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    background-color: var(--color-ink-black);
+    border: var(--border-default);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-card-white);
+}
+
+.navbar__quota-icon {
+    display: flex;
+    color: var(--color-loot-green);
+}
+
+.navbar__quota-count {
+    color: var(--color-buff-orange);
+    font-size: 0.875rem;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .navbar {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .navbar__nav {
+        gap: var(--space-sm);
+    }
+
+    .navbar__link {
+        font-size: 0.6875rem;
+    }
+
+    .navbar__link span {
+        display: none;
+    }
+}
+
+/* Auth Section */
+.navbar__auth {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-left: var(--space-md);
+    padding-left: var(--space-md);
+    border-left: 2px solid var(--color-pixel-gray);
+}
+
+.navbar__email {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray-dark);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar__logout {
+    appearance: none;
+    background: none;
+    border: none;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    color: var(--color-trap-red);
+    cursor: pointer;
+    padding: var(--space-xs);
+    transition: opacity var(--transition-fast);
+}
+
+.navbar__logout:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+}

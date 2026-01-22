@@ -1,0 +1,93 @@
+/* ==========================================================================
+   GlitchCard Component Styles
+   For Risk Warnings and Danger States
+   ========================================================================== */
+
+.glitch-card {
+    background-color: var(--color-card-white);
+    border: 2px dashed var(--color-trap-red);
+    border-radius: var(--radius-none);
+    padding: var(--space-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Warning Icon - Using text instead of emoji */
+.glitch-card::before {
+    content: '!';
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    font-size: 0.875rem;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-trap-red);
+    color: var(--color-card-white);
+}
+
+/* Glitch shake animation on hover */
+.glitch-card:hover {
+    animation: glitch-shake 0.3s ease-in-out;
+}
+
+/* Severity Variants */
+.glitch-card--warning {
+    border-color: var(--color-buff-orange);
+    background-color: #FFF9F0;
+}
+
+.glitch-card--warning::before {
+    content: '!';
+    background-color: var(--color-buff-orange);
+    color: var(--color-ink-black);
+}
+
+.glitch-card--danger {
+    border-color: var(--color-trap-red);
+    background-color: #FFF0F4;
+}
+
+.glitch-card--danger::before {
+    content: 'X';
+    background-color: var(--color-trap-red);
+}
+
+.glitch-card--info {
+    border-color: var(--color-mana-blue);
+    background-color: #F0F4FF;
+    border-style: solid;
+}
+
+.glitch-card--info::before {
+    content: 'i';
+    background-color: var(--color-mana-blue);
+}
+
+/* Title */
+.glitch-card__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-trap-red);
+    margin-bottom: var(--space-sm);
+    padding-right: var(--space-xl);
+}
+
+.glitch-card--warning .glitch-card__title {
+    color: var(--color-buff-orange);
+}
+
+.glitch-card--info .glitch-card__title {
+    color: var(--color-mana-blue);
+}
+
+/* Content */
+.glitch-card__content {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-ink-black);
+}

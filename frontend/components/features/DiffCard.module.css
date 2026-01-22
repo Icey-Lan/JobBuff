@@ -1,0 +1,181 @@
+/* ==========================================================================
+   DiffCard Component Styles
+   For displaying resume modification diffs
+   ========================================================================== */
+
+.diff-card {
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+    border-radius: var(--radius-none);
+    overflow: hidden;
+}
+
+.diff-card--accepted {
+    border-color: var(--color-loot-green);
+}
+
+.diff-card--rejected {
+    border-color: var(--color-trap-red);
+    opacity: 0.6;
+}
+
+/* Header */
+.diff-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-paper-canvas);
+    border-bottom: var(--border-default);
+}
+
+.diff-card__label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-pixel-gray-dark);
+}
+
+.diff-card__index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: var(--space-sm);
+    background-color: var(--color-ink-black);
+    color: var(--color-card-white);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 700;
+}
+
+.diff-card__status {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    padding: 2px 6px;
+    border: 1px solid;
+}
+
+.diff-card__status--pending {
+    color: var(--color-pixel-gray-dark);
+    border-color: var(--color-pixel-gray);
+}
+
+.diff-card__status--accepted {
+    color: var(--color-loot-green);
+    border-color: var(--color-loot-green);
+    background-color: #E8FFF0;
+}
+
+.diff-card__status--rejected {
+    color: var(--color-trap-red);
+    border-color: var(--color-trap-red);
+    background-color: #FFF0F4;
+}
+
+/* Body */
+.diff-card__body {
+    padding: var(--space-md);
+}
+
+/* Diff Blocks */
+.diff-block {
+    margin-bottom: var(--space-md);
+}
+
+.diff-block:last-child {
+    margin-bottom: 0;
+}
+
+.diff-block__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-pixel-gray-dark);
+    margin-bottom: var(--space-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.diff-block__content {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    border-left: 3px solid;
+}
+
+.diff-block__content--before {
+    background-color: #FFF0F4;
+    border-color: var(--color-trap-red);
+    text-decoration: line-through;
+    color: var(--color-pixel-gray-dark);
+}
+
+.diff-block__content--after {
+    background-color: #E8FFF0;
+    border-color: var(--color-loot-green);
+}
+
+/* Reason */
+.diff-card__reason {
+    margin-top: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-paper-canvas);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray-dark);
+    font-style: italic;
+}
+
+.diff-card__reason-label {
+    font-weight: 600;
+    font-style: normal;
+    margin-right: var(--space-xs);
+}
+
+/* Actions */
+.diff-card__actions {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-top: var(--border-default);
+    background-color: var(--color-paper-canvas);
+}
+
+.diff-card__action {
+    flex: 1;
+    padding: var(--space-xs) var(--space-sm);
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: var(--border-default);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-transform: uppercase;
+}
+
+.diff-card__action--accept {
+    background-color: var(--color-card-white);
+    color: var(--color-loot-green);
+}
+
+.diff-card__action--accept:hover {
+    background-color: var(--color-loot-green);
+    color: var(--color-card-white);
+}
+
+.diff-card__action--reject {
+    background-color: var(--color-card-white);
+    color: var(--color-trap-red);
+}
+
+.diff-card__action--reject:hover {
+    background-color: var(--color-trap-red);
+    color: var(--color-card-white);
+}
+
+.diff-card__action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

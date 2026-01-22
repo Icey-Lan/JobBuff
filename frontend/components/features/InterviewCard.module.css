@@ -1,0 +1,194 @@
+/* ==========================================================================
+   InterviewCard Component Styles
+   Accordion-style interview question cards
+   ========================================================================== */
+
+.interview-card {
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+    border-radius: var(--radius-none);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+}
+
+.interview-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Header (Question) */
+.interview-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.interview-card__header:hover {
+    background-color: var(--color-paper-canvas);
+}
+
+.interview-card__question {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    flex: 1;
+}
+
+.interview-card__index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    background-color: var(--color-ink-black);
+    color: var(--color-card-white);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.interview-card__text {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-ink-black);
+}
+
+.interview-card__toggle {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray-dark);
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+}
+
+.interview-card--open .interview-card__toggle {
+    transform: rotate(90deg);
+}
+
+/* Body (Answer Area) */
+.interview-card__body {
+    display: none;
+    border-top: var(--border-default);
+}
+
+.interview-card--open .interview-card__body {
+    display: block;
+}
+
+/* Answer Input */
+.interview-card__answer-section {
+    padding: var(--space-lg);
+}
+
+.interview-card__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-pixel-gray-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-sm);
+}
+
+.interview-card__textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: var(--space-md);
+    border: var(--border-default);
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: box-shadow var(--transition-fast);
+}
+
+.interview-card__textarea:focus {
+    box-shadow: var(--shadow-sm);
+}
+
+.interview-card__submit {
+    margin-top: var(--space-md);
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+/* AI Reference */
+.interview-card__reference {
+    padding: var(--space-lg);
+    background-color: var(--color-paper-canvas);
+    border-top: var(--border-default);
+}
+
+.interview-card__reference-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-mana-blue);
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+.interview-card__reference-toggle:hover {
+    text-decoration: underline;
+}
+
+.interview-card__reference-content {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--color-ink-black);
+}
+
+/* AI Feedback */
+.interview-card__feedback {
+    padding: var(--space-lg);
+    background-color: var(--color-ink-black);
+    color: var(--color-loot-green);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    border-top: var(--border-default);
+}
+
+.interview-card__feedback-label {
+    color: var(--color-buff-orange);
+    margin-bottom: var(--space-sm);
+    display: block;
+    font-weight: 600;
+}
+
+.interview-card__feedback-rating {
+    display: inline-block;
+    margin-top: var(--space-md);
+    padding: var(--space-xs) var(--space-md);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.interview-card__feedback-rating--good {
+    background-color: var(--color-loot-green);
+    color: var(--color-ink-black);
+}
+
+.interview-card__feedback-rating--average {
+    background-color: var(--color-buff-orange);
+    color: var(--color-ink-black);
+}
+
+.interview-card__feedback-rating--poor {
+    background-color: var(--color-trap-red);
+    color: var(--color-card-white);
+}

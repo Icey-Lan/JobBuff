@@ -1,0 +1,312 @@
+/* ==========================================================================
+   Landing Page Styles
+   ========================================================================== */
+
+.landing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-3xl) var(--space-lg);
+}
+
+/* Hero Section */
+.hero {
+    max-width: 800px;
+    text-align: center;
+    margin-bottom: var(--space-3xl);
+}
+
+.hero__badge {
+    display: inline-block;
+    padding: var(--space-xs) var(--space-md);
+    margin-bottom: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-ink-black);
+    background-color: var(--color-buff-orange);
+    border: var(--border-default);
+    box-shadow: var(--shadow-sm);
+}
+
+.hero__title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: var(--space-lg);
+    color: var(--color-ink-black);
+}
+
+.hero__title-highlight {
+    color: var(--color-buff-orange);
+    position: relative;
+    display: inline-block;
+}
+
+.hero__title-highlight::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background-color: var(--color-buff-orange);
+    opacity: 0.25;
+    z-index: -1;
+}
+
+.hero__subtitle {
+    font-size: 1.25rem;
+    color: var(--color-ink-black);
+    opacity: 0.8;
+    margin-bottom: var(--space-xl);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero__tagline {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--color-mana-blue);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-sm) var(--space-lg);
+    background-color: #F0F4FF;
+    border: var(--border-default);
+    display: inline-block;
+}
+
+.hero__cta {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+/* Features Grid */
+.features {
+    width: 100%;
+    max-width: 1000px;
+    margin-bottom: var(--space-3xl);
+}
+
+.features__title {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: var(--space-xl);
+    color: var(--color-ink-black);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.features__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+    .features__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.feature-card {
+    text-align: center;
+    padding: var(--space-md);
+}
+
+.feature-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--space-md);
+    background-color: var(--color-paper-canvas);
+    border: var(--border-default);
+}
+
+.feature-card__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: var(--color-ink-black);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.feature-card__desc {
+    font-size: 0.875rem;
+    color: var(--color-ink-black);
+    opacity: 0.7;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Stats Section */
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-3xl);
+    padding: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+    box-shadow: var(--shadow-md);
+    width: 100%;
+    max-width: 800px;
+}
+
+.stat {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.stat__icon {
+    margin-bottom: var(--space-xs);
+}
+
+.stat__value {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-buff-orange);
+    line-height: 1;
+}
+
+.stat__label {
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Demo Section - Terminal */
+.demo {
+    width: 100%;
+    max-width: 800px;
+    border: var(--border-default);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.demo__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background-color: #2A2A2A;
+    border-bottom: 1px solid #444;
+}
+
+.demo__dots {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.demo__dot--red,
+.demo__dot--yellow,
+.demo__dot--green {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.demo__dot--red {
+    background-color: #FF5F56;
+}
+
+.demo__dot--yellow {
+    background-color: #FFBD2E;
+}
+
+.demo__dot--green {
+    background-color: #27C93F;
+}
+
+.demo__title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray);
+}
+
+.demo__terminal {
+    padding: var(--space-lg);
+    background-color: var(--color-ink-black);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-loot-green);
+    line-height: 2;
+}
+
+.demo__terminal-line {
+    display: block;
+}
+
+.demo__terminal-line--comment {
+    color: #666;
+}
+
+.demo__terminal-line--highlight {
+    color: var(--color-buff-orange);
+    font-weight: 700;
+}
+
+.demo__terminal-line--success {
+    color: var(--color-loot-green);
+    font-weight: 700;
+}
+
+.demo__progress {
+    height: 20px;
+    margin: var(--space-sm) 0;
+    background-color: #333;
+    border: 1px solid #555;
+    overflow: hidden;
+}
+
+.demo__progress-bar {
+    height: 100%;
+    background: repeating-linear-gradient(90deg,
+            var(--color-buff-orange),
+            var(--color-buff-orange) 10px,
+            #CC7030 10px,
+            #CC7030 20px);
+    animation: progress-stripe 1s linear infinite;
+}
+
+@keyframes progress-stripe {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 20px 0;
+    }
+}
+
+.demo__cursor {
+    animation: terminal-blink 1s step-end infinite;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .hero__title {
+        font-size: 2.5rem;
+    }
+
+    .hero__subtitle {
+        font-size: 1rem;
+    }
+
+    .stats {
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
+}

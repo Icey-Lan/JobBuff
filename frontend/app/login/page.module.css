@@ -1,0 +1,114 @@
+.login-page {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    background: linear-gradient(135deg, var(--color-paper-canvas) 0%, #f0e6d3 100%);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-content {
+    padding: var(--space-2xl);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.login-title {
+    font-size: 2rem;
+    margin: var(--space-md) 0 var(--space-sm);
+    color: var(--color-ink-black);
+}
+
+.login-subtitle {
+    color: var(--color-pixel-gray-dark);
+    font-size: 0.9rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ink-black);
+}
+
+.form-input {
+    padding: var(--space-md);
+    border: var(--border-default);
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    outline: none;
+    transition: box-shadow var(--transition-fast);
+}
+
+.form-input:focus {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-buff-orange);
+}
+
+.form-input::placeholder {
+    color: var(--color-pixel-gray);
+}
+
+.message {
+    padding: var(--space-md);
+    border-radius: 0;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.message--success {
+    background-color: rgba(0, 200, 100, 0.15);
+    color: var(--color-loot-green);
+    border: 2px solid var(--color-loot-green);
+}
+
+.message--error {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: var(--color-trap-red);
+    border: 2px solid var(--color-trap-red);
+}
+
+.login-footer {
+    margin-top: var(--space-xl);
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--color-pixel-gray-dark);
+}
+
+.login-footer strong {
+    color: var(--color-buff-orange);
+}
+
+.toggle-mode {
+    background: none;
+    border: none;
+    color: var(--color-buff-orange);
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.toggle-mode:hover {
+    opacity: 0.8;
+}

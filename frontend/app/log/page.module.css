@@ -1,0 +1,213 @@
+/* ==========================================================================
+   Adventure Log Page Styles
+   ========================================================================== */
+
+.adventure-log {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-lg);
+}
+
+/* Header */
+.log-header {
+    margin-bottom: var(--space-2xl);
+}
+
+.log-header__title {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.log-header__subtitle {
+    color: var(--color-pixel-gray-dark);
+    font-size: 0.875rem;
+    margin-left: 56px;
+    /* Align with text start */
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stat-card {
+    text-align: center;
+    padding: var(--space-lg);
+}
+
+.stat-card__value {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-buff-orange);
+    line-height: 1;
+    margin-bottom: var(--space-sm);
+}
+
+.stat-card__label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-pixel-gray-dark);
+}
+
+/* Charts Section */
+.charts-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-2xl);
+}
+
+@media (max-width: 900px) {
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* Quest List */
+.quest-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+}
+
+.quest-list-header__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Actions */
+.log-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-lg);
+}
+
+.quest-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.quest-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    background-color: var(--color-card-white);
+}
+
+.quest-info {
+    flex: 1;
+}
+
+.quest-main {
+    margin-bottom: var(--space-xs);
+}
+
+.quest-company {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-right: var(--space-sm);
+}
+
+.quest-role {
+    color: var(--color-pixel-gray-dark);
+}
+
+.quest-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    font-size: 0.85rem;
+}
+
+.quest-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.quest-badge--progress {
+    background-color: rgba(255, 200, 0, 0.2);
+    color: #d4a000;
+}
+
+.quest-badge--completed {
+    background-color: rgba(0, 200, 100, 0.2);
+    color: var(--color-loot-green);
+}
+
+.quest-badge--archived {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--color-pixel-gray-dark);
+}
+
+.quest-score {
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+.quest-date {
+    color: var(--color-pixel-gray);
+}
+
+.quest-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.delete-btn {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+}
+
+.loading,
+.empty-state {
+    text-align: center;
+    padding: var(--space-3xl);
+    color: var(--color-pixel-gray-dark);
+}
+
+.empty-state p {
+    margin: var(--space-sm) 0;
+}
+
+.empty-hint {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}

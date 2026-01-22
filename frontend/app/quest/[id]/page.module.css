@@ -1,0 +1,318 @@
+/* ==========================================================================
+   Quest Detail Page Styles (Intel Scan, Forge, Trial)
+   ========================================================================== */
+
+.quest-detail {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+}
+
+/* Top Bar with Quest Info */
+.quest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+    margin-bottom: var(--space-lg);
+}
+
+.quest-header__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.quest-header__company {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.quest-header__role {
+    font-size: 0.875rem;
+    color: var(--color-pixel-gray-dark);
+}
+
+.quest-header__actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* Stage Tabs */
+.stage-tabs {
+    display: flex;
+    border: var(--border-default);
+    background-color: var(--color-card-white);
+    margin-bottom: var(--space-xl);
+}
+
+.stage-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: none;
+    border: none;
+    border-right: var(--border-default);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--color-pixel-gray-dark);
+}
+
+.stage-tab:last-child {
+    border-right: none;
+}
+
+.stage-tab:hover {
+    background-color: var(--color-paper-canvas);
+}
+
+.stage-tab--active {
+    background-color: var(--color-buff-orange);
+    color: var(--color-ink-black);
+}
+
+.stage-tab--completed {
+    color: var(--color-loot-green);
+}
+
+.stage-tab__icon {
+    font-size: 1rem;
+}
+
+/* Stage Content */
+.stage-content {
+    min-height: 400px;
+}
+
+/* --- Intel Scan Stage --- */
+.intel-scan {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+@media (max-width: 900px) {
+    .intel-scan {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Score Display */
+.score-panel {
+    text-align: center;
+    padding: var(--space-xl);
+}
+
+.score-value {
+    font-family: var(--font-mono);
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--color-buff-orange);
+    line-height: 1;
+    margin-bottom: var(--space-sm);
+}
+
+.score-label {
+    font-size: 0.875rem;
+    color: var(--color-pixel-gray-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Radar Chart Placeholder */
+.radar-chart {
+    width: 100%;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-paper-canvas);
+    border: var(--border-default);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray-dark);
+}
+
+/* Brief Panel */
+.brief-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.brief-section {
+    padding: var(--space-md);
+    background-color: var(--color-paper-canvas);
+    border: var(--border-default);
+}
+
+.brief-section__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin-bottom: var(--space-md);
+}
+
+.brief-section__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.brief-section__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.brief-section__item::before {
+    content: '▸';
+    color: var(--color-buff-orange);
+    flex-shrink: 0;
+}
+
+/* AI Summary */
+.ai-summary {
+    padding: var(--space-lg);
+    background-color: var(--color-ink-black);
+    color: var(--color-loot-green);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    border: var(--border-default);
+}
+
+.ai-summary__label {
+    color: var(--color-buff-orange);
+    margin-bottom: var(--space-sm);
+    display: block;
+}
+
+/* Bottom Actions */
+.stage-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: var(--border-default);
+}
+
+.stage-actions__secondary {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* --- Forge Stage --- */
+.forge-stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.forge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+}
+
+.forge-stats {
+    display: flex;
+    gap: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+}
+
+.forge-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+}
+
+@media (max-width: 1000px) {
+    .forge-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.diff-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.resume-preview {
+    position: sticky;
+    top: var(--space-lg);
+    align-self: start;
+}
+
+.resume-preview__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+    border-bottom: var(--border-default);
+    font-weight: 700;
+}
+
+.resume-preview__actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.resume-preview__content {
+    font-size: 0.875rem;
+    line-height: 1.8;
+}
+
+/* --- Trial Stage --- */
+.trial-stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.trial-header {
+    text-align: center;
+    padding: var(--space-lg);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+}
+
+.trial-header h2 {
+    margin-bottom: var(--space-sm);
+}
+
+.trial-header p {
+    color: var(--color-pixel-gray-dark);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.interview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}

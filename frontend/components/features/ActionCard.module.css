@@ -1,0 +1,82 @@
+.action-card {
+    margin-bottom: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.strategy-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.tier-badge {
+    display: inline-flex;
+    padding: 4px 12px;
+    background: var(--color-buff-orange);
+    color: var(--color-ink-black);
+    font-weight: bold;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    border: 2px solid var(--color-ink-black);
+    box-shadow: 2px 2px 0 var(--color-ink-black);
+}
+
+.tier-info {
+    font-size: 0.9rem;
+    color: var(--color-ink-light);
+    line-height: 1.5;
+}
+
+.greetings-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.greeting-item {
+    position: relative;
+    background: var(--color-paper-light);
+    border: 2px solid var(--color-ink-black);
+    padding: var(--space-md);
+    box-shadow: 4px 4px 0 var(--color-ink-black);
+    transition: transform 0.2s;
+}
+
+.greeting-item:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--color-ink-black);
+}
+
+.greeting-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-ink-light);
+}
+
+.greeting-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--color-ink-black);
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-mana-blue);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.copy-btn:hover {
+    color: var(--color-buff-orange);
+}

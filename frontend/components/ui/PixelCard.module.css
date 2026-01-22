@@ -1,0 +1,64 @@
+/* Base Card */
+.pixel-card {
+    background-color: var(--color-paper-light);
+    border: 2px solid var(--color-pixel-gray-dark);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    position: relative;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Shadows */
+.pixel-card--shadow,
+.pixel-card--shadow-md {
+    box-shadow: 4px 4px 0 var(--color-pixel-gray-dark);
+}
+
+.pixel-card--shadow-sm {
+    box-shadow: 2px 2px 0 var(--color-pixel-gray-dark);
+}
+
+.pixel-card--shadow-lg {
+    box-shadow: 6px 6px 0 var(--color-pixel-gray-dark);
+}
+
+/* Variants */
+.pixel-card--primary {
+    border-color: var(--color-ink-black);
+    background-color: #fff9db;
+    /* Light retro yellow */
+}
+
+.pixel-card--secondary {
+    border-color: var(--color-ink-black);
+    background-color: #e6fcf5;
+    /* Light teal */
+}
+
+.pixel-card--danger {
+    border-color: var(--color-trap-red);
+    background-color: #fff5f5;
+}
+
+/* Modifiers */
+.pixel-card--hover-lift:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--color-pixel-gray-dark);
+}
+
+.pixel-card--no-padding {
+    padding: 0;
+}
+
+/* Header & Footer */
+.pixel-card__header {
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+    border-bottom: 2px dashed var(--color-border-default);
+}
+
+.pixel-card__footer {
+    padding-top: var(--space-md);
+    margin-top: var(--space-md);
+    border-top: 2px dashed var(--color-border-default);
+}

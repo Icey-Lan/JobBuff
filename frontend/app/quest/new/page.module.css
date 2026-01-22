@@ -1,0 +1,249 @@
+/* ==========================================================================
+   Quest Board Page Styles (Stage 1: 接取任务)
+   ========================================================================== */
+
+.quest-board {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-lg);
+}
+
+/* Page Header */
+.quest-board__header {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+}
+
+.quest-board__title {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+}
+
+.quest-board__subtitle {
+    color: var(--color-pixel-gray-dark);
+    font-size: 0.875rem;
+}
+
+/* Form Card */
+.quest-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+/* Section */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.form-section__label {
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.form-section__label-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background-color: var(--color-buff-orange);
+    color: var(--color-ink-black);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: var(--border-default);
+}
+
+/* Resume Upload Zone */
+.resume-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    border: 2px dashed var(--color-ink-black);
+    background-color: var(--color-paper-canvas);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    min-height: 120px;
+}
+
+.resume-upload:hover {
+    border-color: var(--color-buff-orange);
+    background-color: #FFF9F0;
+}
+
+.resume-upload--active {
+    border-color: var(--color-buff-orange);
+    border-style: solid;
+    background-color: #FFF5ED;
+}
+
+.resume-upload__icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+}
+
+.resume-upload__text {
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+.resume-upload__hint {
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray-dark);
+}
+
+.resume-upload__file {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+}
+
+.resume-upload__file-name {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+}
+
+.resume-upload__file-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-trap-red);
+    font-size: 1rem;
+    padding: 0;
+}
+
+/* JD Terminal */
+.jd-terminal {
+    background-color: var(--color-ink-black);
+    border: var(--border-default);
+    overflow: hidden;
+}
+
+.jd-terminal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    background-color: #2A2A2A;
+    border-bottom: 1px solid #444;
+}
+
+.jd-terminal__dots {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.jd-terminal__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.jd-terminal__dot--red {
+    background-color: #FF5F56;
+}
+
+.jd-terminal__dot--yellow {
+    background-color: #FFBD2E;
+}
+
+.jd-terminal__dot--green {
+    background-color: #27C93F;
+}
+
+.jd-terminal__title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray);
+}
+
+.jd-terminal__body {
+    padding: var(--space-md);
+}
+
+.jd-terminal__textarea {
+    width: 100%;
+    min-height: 200px;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-loot-green);
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.jd-terminal__textarea::placeholder {
+    color: #666;
+}
+
+.jd-terminal__footer {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    background-color: #2A2A2A;
+    border-top: 1px solid #444;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray);
+}
+
+/* Mission Goals */
+.mission-goals {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+@media (max-width: 600px) {
+    .mission-goals {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mission-input {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.mission-input__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-ink-black);
+}
+
+.mission-input__field {
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    border: var(--border-default);
+    border-radius: var(--radius-none);
+    background-color: var(--color-card-white);
+    outline: none;
+    transition: box-shadow var(--transition-fast);
+}
+
+.mission-input__field:focus {
+    box-shadow: var(--shadow-sm);
+}
+
+/* Submit Section */
+.quest-submit {
+    padding-top: var(--space-md);
+    border-top: var(--border-default);
+}

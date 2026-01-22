@@ -1,0 +1,30 @@
+/* ==========================================================================
+   Pixel Background Styles
+   ========================================================================== */
+
+.container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    user-select: none;
+    pointer-events: none;
+    background-color: var(--color-paper-canvas);
+}
+
+.shape {
+    position: absolute;
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+/* Specific shapes can have additional styles if needed */
+.arrow,
+.plus,
+.square {
+    /* Ensure crisp rendering */
+    image-rendering: pixelated;
+}

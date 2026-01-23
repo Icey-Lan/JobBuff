@@ -554,14 +554,16 @@ export default function QuestDetailPage() {
     const updatePreview = (updatedDiffs: DiffItem[]) => {
         if (!questData?.forge?.markdown_export) return;
 
+        // Start with original resume text
         let newPreview = questData.inputs?.resume_text || questData.forge.markdown_export;
 
         // Apply accepted changes to preview
         updatedDiffs.forEach(diff => {
             if (diff.status === 'accepted' && diff.before && diff.after) {
-                // Simple replacement - for more complex scenarios, would need smarter matching
+                // Replace original text with the improved version
                 newPreview = newPreview.replace(diff.before, diff.after);
             }
+            // For rejected changes, keep the original (don't replace)
         });
 
         // Build a summary at the top
@@ -571,7 +573,8 @@ export default function QuestDetailPage() {
 
         const statusLine = `【锻造状态】已接受: ${acceptedCount} | 已拒绝: ${rejectedCount} | 待定: ${pendingCount}\n${'─'.repeat(40)}\n\n`;
 
-        setResumePreview(statusLine + (questData.forge.markdown_export || newPreview));
+        // Use the modified preview with accepted changes applied
+        setResumePreview(statusLine + newPreview);
     };
 
     const handleAcceptDiff = (id: string) => {

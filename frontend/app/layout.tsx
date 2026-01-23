@@ -4,6 +4,7 @@ import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
 import { PixelBackground } from "@/components/shared/PixelBackground";
 import { AuthProvider } from "@/components/AuthProvider";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 export const metadata: Metadata = {
   title: "JobBuff (职场外挂) - AI 求职辅助神器",
@@ -19,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body>
+        <GoogleAnalytics />
         <AuthProvider>
           <PixelBackground />
           <Navbar />

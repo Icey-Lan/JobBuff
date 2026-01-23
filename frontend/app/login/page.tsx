@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { trackUserAction } from '@/lib/analytics';
 import styles from './page.module.css';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { PixelCard } from '@/components/ui/PixelCard';
@@ -38,6 +39,7 @@ function LoginForm() {
                     // Check if email confirmation is required
                     if (data.session) {
                         // Session exists, redirect immediately
+                        trackUserAction.signup(); // GA 埋点：注册成功
                         setMessage({ type: 'success', text: '🎮 注册成功！正在进入游戏...' });
                         const redirectTo = searchParams.get('redirect') || '/';
                         // Use window.location for full page reload
@@ -62,6 +64,7 @@ function LoginForm() {
                     setMessage({ type: 'error', text: error.message });
                     setLoading(false);
                 } else if (data.session) {
+                    trackUserAction.login(); // GA 埋点：登录成功
                     const redirectTo = searchParams.get('redirect') || '/';
                     // Use window.location for full page reload
                     window.location.href = redirectTo === '/login' ? '/' : redirectTo;

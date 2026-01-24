@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
 interface UserQuota {
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // 订阅 auth 状态变化 - 这是唯一处理 auth 的地方
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, newSession) => {
+            async (event: AuthChangeEvent, newSession: Session | null) => {
                 console.log('[AuthProvider] Auth state changed:', event, newSession?.user?.email);
 
                 // 更新 session 和 user

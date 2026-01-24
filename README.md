@@ -12,11 +12,7 @@
 [![Gemini](https://img.shields.io/badge/Gemini-AI-4285F4?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-[🚀 在线体验](https://jobbuff.vercel.app) · [📖 产品文档](./docs/PRD_岗位智能分析助手.md) · [🐛 报告问题](https://github.com/your-username/JobBuff/issues)
-
----
-
-<img src="docs/assets/demo.gif" alt="JobBuff Demo" width="80%">
+[🚀 在线体验](https://jobbuff.vercel.app) · [报告问题](https://github.com/Icey-Lan/JobBuff/issues)
 
 </div>
 
@@ -130,7 +126,7 @@ graph LR
 | **UI 框架** | React 19 + CSS Modules | 像素游戏风格设计系统 |
 | **数据库** | Supabase (PostgreSQL) | 用户数据、任务存储 |
 | **认证** | Supabase Auth | 邮箱密码登录 |
-| **AI 引擎** | Gemini 2.0 Flash | JD 分析、简历优化、面试生成 |
+| **AI 引擎** | Gemini 3.0 Flash | JD 分析、简历优化、面试生成 |
 | **部署** | Vercel | 边缘函数，全球加速 |
 
 ---
@@ -160,17 +156,6 @@ JobBuff/
 │   │   ├── supabase/             # Supabase 客户端 + CRUD
 │   │   └── prompts.ts            # AI Prompt 模板
 │   └── styles/                   # 全局样式 + 设计 Tokens
-│
-├── docs/                         # 📖 产品文档
-│   ├── PRD_岗位智能分析助手.md    # 产品需求文档
-│   ├── UI_UX_Design_JobBuff.md   # 设计规范
-│   └── sql/                      # 数据库初始化脚本
-│
-└── .agent/skills/                # 🤖 AI Skill 定义
-    ├── jobbuff-intel/            # 情报分析技能
-    ├── jobbuff-resume-forge/     # 简历锻造技能
-    ├── jobbuff-interview/        # 模拟面试技能
-    └── jobbuff-action-plan/      # 投递策略技能
 ```
 
 ---
@@ -186,7 +171,7 @@ JobBuff/
 ### 1️⃣ 克隆仓库
 
 ```bash
-git clone https://github.com/your-username/JobBuff.git
+git clone https://github.com/Icey-Lan/JobBuff.git
 cd JobBuff/frontend
 ```
 
@@ -256,26 +241,9 @@ npm run dev
 - [x] ~~模拟面试 + AI 点评~~
 - [x] ~~用户认证 + 数据云存储~~
 - [x] ~~配额系统 + 用户中心~~
-- [ ] 🔜 简历素材库 (跨任务复用)
+- [x] ~~简历素材库 (跨任务复用)~~
 - [ ] 🔜 批量任务导入
 - [ ] 🔜 Chrome 插件一键采集
-
----
-
-## 📸 界面预览
-
-<details>
-<summary>点击展开截图</summary>
-
-| 情报侦察 | 装备锻造 |
-|----------|----------|
-| ![Intel](docs/assets/intel.png) | ![Forge](docs/assets/forge.png) |
-
-| 试炼挑战 | 冒险日志 |
-|----------|----------|
-| ![Trial](docs/assets/trial.png) | ![Log](docs/assets/log.png) |
-
-</details>
 
 ---
 
@@ -301,8 +269,8 @@ npm run dev
 
 **⭐ 如果觉得有帮助，请给个 Star 支持一下！**
 
-Made with ❤️ by [JobBuff Team](https://github.com/your-username)
+Made with ❤️ by [Icey-Lan](https://github.com/Icey-Lan)
 
-[报告 Bug](https://github.com/your-username/JobBuff/issues) · [功能建议](https://github.com/your-username/JobBuff/issues)
+[报告 Bug](https://github.com/Icey-Lan/JobBuff/issues) · [功能建议](https://github.com/Icey-Lan/JobBuff/issues)
 
 </div>

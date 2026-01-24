@@ -51,3 +51,7 @@ archived/
 
 # Supabase
 .supabase/
+
+# Personal development files (个人沉淀，不上传)
+.agent/
+docs/

@@ -237,3 +237,15 @@ export function IconShield({ size = 24, color = 'currentColor', className }: Ico
     );
 }
 
+export function IconTrash({ size = 24, color = 'currentColor', className }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+            <rect x="5" y="6" width="14" height="14" stroke={color} strokeWidth="2" fill="none" />
+            <line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth="2" />
+            <path d="M8 6 L8 4 L16 4 L16 6" stroke={color} strokeWidth="2" fill="none" />
+            <line x1="10" y1="10" x2="10" y2="16" stroke={color} strokeWidth="2" />
+            <line x1="14" y1="10" x2="14" y2="16" stroke={color} strokeWidth="2" />
+        </svg>
+    );
+}
+

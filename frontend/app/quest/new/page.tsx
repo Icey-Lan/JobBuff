@@ -9,17 +9,22 @@ import { PixelCard } from '@/components/ui/PixelCard';
 import { IconUpload, IconFile, IconX, IconTarget, IconRadar, IconWarning } from '@/components/icons';
 import { useAuth } from '@/components/AuthProvider';
 import { decrementQuota, createQuest } from '@/lib/supabase/quests';
+import { ResumeLibrary } from '@/components/features/ResumeLibrary';
+import { createResume, updateResumeUsage, ResumeData } from '@/lib/supabase/resumes';
 
 export default function NewQuestPage() {
     const router = useRouter();
     const { user, quota, refreshQuota } = useAuth();
 
-    // State
-    const [resumeFile, setResumeFile] = useState<File | null>(null);
+    // Resume State - supports both library selection and new upload
+    const [selectedResume, setSelectedResume] = useState<ResumeData | null>(null);
+    const [newResumeFile, setNewResumeFile] = useState<File | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+
+    // Other State
     const [jdText, setJdText] = useState('');
     const [targetRole, setTargetRole] = useState('');
     const [targetSalary, setTargetSalary] = useState('');
-    const [isDragging, setIsDragging] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Quota check
@@ -29,45 +34,28 @@ export default function NewQuestPage() {
     const charCount = jdText.length;
     const isValidJD = charCount >= 50 && charCount <= 10000;
 
-    // File upload handlers
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
-    }, []);
+    // Resume ready: either selected from library OR new file uploaded
+    const hasResume = selectedResume !== null || newResumeFile !== null;
 
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-    }, []);
+    // Handle resume selection from library
+    const handleResumeSelect = (resume: ResumeData | null) => {
+        setSelectedResume(resume);
+        setNewResumeFile(null); // Clear new upload if selecting from library
+    };
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
+    // Handle new resume upload (from ResumeLibrary component)
+    const handleNewUpload = (file: File) => {
+        setNewResumeFile(file);
+        setSelectedResume(null); // Clear library selection if uploading new
+    };
 
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            const file = files[0];
-            if (file.type === 'application/pdf' ||
-                file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-                file.type === 'text/markdown') {
-                setResumeFile(file);
-            }
-        }
-    }, []);
-
-    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            setResumeFile(files[0]);
-        }
-    }, []);
-
-    const removeFile = useCallback(() => {
-        setResumeFile(null);
-    }, []);
+    // Clear new upload
+    const clearNewUpload = () => {
+        setNewResumeFile(null);
+    };
 
     // Form validation (includes quota check)
-    const isFormValid = resumeFile && isValidJD && targetRole.trim() && targetSalary.trim() && hasQuota;
+    const isFormValid = hasResume && isValidJD && targetRole.trim() && targetSalary.trim() && hasQuota;
 
     // Submit handler
     const handleSubmit = async (e: React.FormEvent) => {
@@ -77,15 +65,20 @@ export default function NewQuestPage() {
         setIsSubmitting(true);
 
         try {
-            // Read resume content
             let resumeText = '';
-            if (resumeFile) {
-                if (resumeFile.name.endsWith('.md') || resumeFile.name.endsWith('.txt')) {
-                    // Text files: read directly
-                    resumeText = await resumeFile.text();
+            let usedResumeId: string | null = null;
+
+            if (selectedResume) {
+                // Use resume from library
+                resumeText = selectedResume.content;
+                usedResumeId = selectedResume.id;
+            } else if (newResumeFile) {
+                // Parse new uploaded file
+                if (newResumeFile.name.endsWith('.md') || newResumeFile.name.endsWith('.txt')) {
+                    resumeText = await newResumeFile.text();
                 } else {
-                    // PDF/Word files: use PP-StructureV3 API for parsing
-                    const arrayBuffer = await resumeFile.arrayBuffer();
+                    // PDF/Word files: use PP-StructureV3 API
+                    const arrayBuffer = await newResumeFile.arrayBuffer();
                     const base64 = btoa(
                         new Uint8Array(arrayBuffer).reduce(
                             (data, byte) => data + String.fromCharCode(byte),
@@ -98,7 +91,7 @@ export default function NewQuestPage() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             file_base64: base64,
-                            file_name: resumeFile.name,
+                            file_name: newResumeFile.name,
                         }),
                     });
 
@@ -113,6 +106,21 @@ export default function NewQuestPage() {
                     }
 
                     resumeText = parseResult.markdown;
+                }
+
+                // Save new resume to library
+                if (user) {
+                    const fileType = newResumeFile.name.split('.').pop() || 'unknown';
+                    const { data: newResume } = await createResume({
+                        userId: user.id,
+                        fileName: newResumeFile.name,
+                        fileType: fileType,
+                        content: resumeText,
+                        fileSize: newResumeFile.size,
+                    });
+                    if (newResume) {
+                        usedResumeId = newResume.id;
+                    }
                 }
             }
 
@@ -151,6 +159,11 @@ export default function NewQuestPage() {
 
             if (questError || !quest) {
                 throw new Error('保存任务失败');
+            }
+
+            // Update resume usage time
+            if (usedResumeId) {
+                await updateResumeUsage(usedResumeId);
             }
 
             // Decrement quota after successful save
@@ -194,54 +207,39 @@ export default function NewQuestPage() {
 
                 <form className={styles['quest-form']} onSubmit={handleSubmit}>
 
-                    {/* Step 1: Resume Upload */}
+                    {/* Step 1: Resume Selection */}
                     <div className={styles['form-section']}>
                         <label className={styles['form-section__label']}>
                             <span className={styles['form-section__label-step']}>1</span>
                             选择简历装备
                         </label>
 
-                        <div
-                            className={`${styles['resume-upload']} ${isDragging ? styles['resume-upload--active'] : ''}`}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            onClick={() => document.getElementById('resume-input')?.click()}
-                        >
-                            <input
-                                id="resume-input"
-                                type="file"
-                                accept=".pdf,.docx,.md"
-                                onChange={handleFileSelect}
-                                style={{ display: 'none' }}
+                        {/* Resume Library Dropdown */}
+                        {user && (
+                            <ResumeLibrary
+                                userId={user.id}
+                                onSelect={handleResumeSelect}
+                                onNewUpload={handleNewUpload}
+                                selectedResumeId={selectedResume?.id}
                             />
+                        )}
 
-                            {resumeFile ? (
-                                <div className={styles['resume-upload__file']}>
-                                    <IconFile size={24} color="var(--color-loot-green)" />
-                                    <span className={styles['resume-upload__file-name']}>{resumeFile.name}</span>
-                                    <button
-                                        type="button"
-                                        className={styles['resume-upload__file-remove']}
-                                        onClick={(e) => { e.stopPropagation(); removeFile(); }}
-                                    >
-                                        <IconX size={16} color="var(--color-trap-red)" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className={styles['resume-upload__icon']}>
-                                        <IconUpload size={48} color="var(--color-pixel-gray-dark)" />
-                                    </div>
-                                    <div className={styles['resume-upload__text']}>
-                                        拖拽简历至此处，或点击上传
-                                    </div>
-                                    <div className={styles['resume-upload__hint']}>
-                                        支持 PDF / Word / Markdown，最大 10MB
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                        {/* Show new upload file if selected */}
+                        {newResumeFile && (
+                            <div className={styles['resume-upload__file']} style={{ marginTop: '12px' }}>
+                                <IconFile size={24} color="var(--color-loot-green)" />
+                                <span className={styles['resume-upload__file-name']}>
+                                    📤 新上传: {newResumeFile.name}
+                                </span>
+                                <button
+                                    type="button"
+                                    className={styles['resume-upload__file-remove']}
+                                    onClick={clearNewUpload}
+                                >
+                                    <IconX size={16} color="var(--color-trap-red)" />
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Step 2: JD Input */}

@@ -1,0 +1,303 @@
+.profilePage {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.profileHeader {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.profileHeader__title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.profileHeader__subtitle {
+    color: var(--color-text-muted);
+    margin-top: 0.5rem;
+}
+
+/* Account Info Section */
+.section {
+    margin-bottom: 1.5rem;
+}
+
+.section__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.accountInfo {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.accountInfo__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--color-pixel-gray-light);
+    border-radius: 8px;
+    border: 2px solid var(--color-pixel-gray);
+}
+
+.accountInfo__label {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.accountInfo__value {
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+.accountInfo__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.accountInfo__badge--free {
+    background: var(--color-pixel-gray);
+    color: var(--color-text-muted);
+}
+
+.accountInfo__badge--premium {
+    background: linear-gradient(135deg, var(--color-buff-orange), var(--color-buff-yellow));
+    color: white;
+}
+
+/* Quota Section */
+.quotaCard {
+    padding: 1.5rem;
+}
+
+.quotaStats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.quotaStat {
+    padding: 1rem;
+    background: var(--color-pixel-gray-light);
+    border-radius: 8px;
+    border: 2px solid var(--color-pixel-gray);
+}
+
+.quotaStat__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-buff-orange);
+}
+
+.quotaStat__label {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+}
+
+.quotaProgress {
+    margin-top: 1rem;
+}
+
+.quotaProgress__bar {
+    height: 12px;
+    background: var(--color-pixel-gray);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid var(--color-pixel-gray-dark);
+}
+
+.quotaProgress__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-loot-green), var(--color-buff-orange));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.quotaProgress__text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.5rem;
+}
+
+/* Quota Rules */
+.quotaRules {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-pixel-gray);
+}
+
+.quotaRules__title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.quotaRules__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.quotaRules__list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+}
+
+.quotaRules__deduct {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    padding: 0.15rem 0.5rem;
+    background: var(--color-trap-red);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.quotaRules__free {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    padding: 0.15rem 0.5rem;
+    background: var(--color-loot-green);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.quotaRules__safe {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    padding: 0.15rem 0.5rem;
+    background: var(--color-mana-blue, #3b82f6);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+/* Upgrade Section */
+.upgradeCard {
+    background: linear-gradient(135deg, rgba(255, 149, 0, 0.1), rgba(255, 204, 0, 0.1));
+    border: 2px solid var(--color-buff-orange);
+    padding: 1.5rem;
+}
+
+.upgradeTier {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.upgradeTier__name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-buff-orange);
+}
+
+.upgradeTier__badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    background: var(--color-pixel-gray);
+    color: var(--color-text-muted);
+    border-radius: 9999px;
+    border: 2px solid var(--color-pixel-gray-dark);
+}
+
+.upgradeFeatures {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+}
+
+.upgradeFeatures li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+}
+
+.upgradeFeatures li::before {
+    content: '✓';
+    color: var(--color-loot-green);
+    font-weight: bold;
+}
+
+.upgradeButton {
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-pixel-gray);
+    border: 2px solid var(--color-pixel-gray-dark);
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: not-allowed;
+    text-align: center;
+}
+
+/* Security Section */
+.securityActions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.securityActions button {
+    flex: 1;
+    min-width: 150px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .quotaStats {
+        grid-template-columns: 1fr;
+    }
+
+    .securityActions {
+        flex-direction: column;
+    }
+
+    .securityActions button {
+        width: 100%;
+    }
+}

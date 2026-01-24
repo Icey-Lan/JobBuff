@@ -207,3 +207,33 @@ export function IconPieChart({ size = 24, color = 'currentColor', className }: I
         </svg>
     );
 }
+
+export function IconUser({ size = 24, color = 'currentColor', className }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+            <circle cx="12" cy="8" r="4" fill={color} />
+            <path d="M4 22 C4 16 8 14 12 14 C16 14 20 16 20 22" stroke={color} strokeWidth="2" fill="none" />
+        </svg>
+    );
+}
+
+export function IconRocket({ size = 24, color = 'currentColor', className }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M12 2 C12 2 6 8 6 14 L12 20 L18 14 C18 8 12 2 12 2" stroke={color} strokeWidth="2" fill="none" />
+            <circle cx="12" cy="10" r="2" fill={color} />
+            <path d="M6 14 L2 18" stroke={color} strokeWidth="2" />
+            <path d="M18 14 L22 18" stroke={color} strokeWidth="2" />
+        </svg>
+    );
+}
+
+export function IconShield({ size = 24, color = 'currentColor', className }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M12 2 L4 6 L4 12 C4 17 8 21 12 22 C16 21 20 17 20 12 L20 6 L12 2" stroke={color} strokeWidth="2" fill="none" />
+            <polyline points="9,12 11,14 15,10" stroke={color} strokeWidth="2" fill="none" />
+        </svg>
+    );
+}
+

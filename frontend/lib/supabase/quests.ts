@@ -6,6 +6,7 @@ export interface QuestInput {
     resumeText: string;
     targetPosition?: string;
     targetSalary?: string;
+    intel?: any;
 }
 
 export interface QuestData {
@@ -55,6 +56,7 @@ export async function createQuest(input: QuestInput): Promise<{ data: QuestData 
             resume_text: input.resumeText,
             target_position: input.targetPosition,
             target_salary: input.targetSalary,
+            intel: input.intel,
             status: 'intel',
         })
         .select()

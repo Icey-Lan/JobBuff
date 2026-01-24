@@ -2,13 +2,17 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import styles from './page.module.css';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { PixelCard } from '@/components/ui/PixelCard';
-import { IconUpload, IconFile, IconX, IconTarget, IconRadar } from '@/components/icons';
+import { IconUpload, IconFile, IconX, IconTarget, IconRadar, IconWarning } from '@/components/icons';
+import { useAuth } from '@/components/AuthProvider';
+import { decrementQuota, createQuest } from '@/lib/supabase/quests';
 
 export default function NewQuestPage() {
     const router = useRouter();
+    const { user, quota, refreshQuota } = useAuth();
 
     // State
     const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -17,6 +21,9 @@ export default function NewQuestPage() {
     const [targetSalary, setTargetSalary] = useState('');
     const [isDragging, setIsDragging] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Quota check
+    const hasQuota = quota && quota.remaining > 0;
 
     // Character count for JD
     const charCount = jdText.length;
@@ -59,8 +66,8 @@ export default function NewQuestPage() {
         setResumeFile(null);
     }, []);
 
-    // Form validation
-    const isFormValid = resumeFile && isValidJD && targetRole.trim() && targetSalary.trim();
+    // Form validation (includes quota check)
+    const isFormValid = resumeFile && isValidJD && targetRole.trim() && targetSalary.trim() && hasQuota;
 
     // Submit handler
     const handleSubmit = async (e: React.FormEvent) => {
@@ -127,20 +134,30 @@ export default function NewQuestPage() {
             }
 
             const data = await response.json();
-            const questId = `quest-${Date.now()}`;
 
-            // Save to localStorage
-            const questData = {
-                id: questId,
-                createdAt: new Date().toISOString(),
-                inputs: payload,
+            // Save to Supabase
+            if (!user) {
+                throw new Error('用户未登录');
+            }
+
+            const { data: quest, error: questError } = await createQuest({
+                userId: user.id,
+                jdText: jdText,
+                resumeText: resumeText,
+                targetPosition: targetRole,
+                targetSalary: targetSalary,
                 intel: data,
-                forge: null,
-                trial: null
-            };
-            localStorage.setItem(`jobbuff_quest_${questId}`, JSON.stringify(questData));
+            });
 
-            router.push(`/quest/${questId}`);
+            if (questError || !quest) {
+                throw new Error('保存任务失败');
+            }
+
+            // Decrement quota after successful save
+            await decrementQuota(user.id);
+            await refreshQuota();
+
+            router.push(`/quest/${quest.id}`);
         } catch (error) {
             console.error(error);
             alert('侦察任务启动失败，请重试');
@@ -164,6 +181,17 @@ export default function NewQuestPage() {
 
             {/* Main Form */}
             <PixelCard shadow="lg">
+                {/* Quota Warning */}
+                {!hasQuota && (
+                    <div className={styles['quota-warning']}>
+                        <IconWarning size={20} color="var(--color-trap-red)" />
+                        <span>您的免费配额已用尽。</span>
+                        <Link href="/profile" className={styles['quota-warning__link']}>
+                            查看升级方案 →
+                        </Link>
+                    </div>
+                )}
+
                 <form className={styles['quest-form']} onSubmit={handleSubmit}>
 
                     {/* Step 1: Resume Upload */}

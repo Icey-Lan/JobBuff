@@ -110,6 +110,27 @@
     font-size: 0.875rem;
 }
 
+.navbar__quota-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: var(--space-xs);
+    background-color: var(--color-pixel-gray);
+    color: var(--color-ink-black);
+    border-radius: 50%;
+    font-size: 0.625rem;
+    font-weight: 700;
+    cursor: help;
+    transition: all var(--transition-fast);
+}
+
+.navbar__quota-help:hover {
+    background-color: var(--color-buff-orange);
+    color: var(--color-card-white);
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
     .navbar {

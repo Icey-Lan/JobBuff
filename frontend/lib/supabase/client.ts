@@ -4,6 +4,29 @@ import { createBrowserClient } from '@supabase/ssr';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+// Create a proper chainable mock for build time
+const createChainableMock = () => {
+    const chainable: any = {
+        select: () => chainable,
+        insert: () => chainable,
+        update: () => chainable,
+        delete: () => chainable,
+        upsert: () => chainable,
+        eq: () => chainable,
+        neq: () => chainable,
+        gt: () => chainable,
+        gte: () => chainable,
+        lt: () => chainable,
+        lte: () => chainable,
+        order: () => chainable,
+        limit: () => chainable,
+        single: () => Promise.resolve({ data: null, error: { code: 'MOCK', message: 'Mock client' } }),
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        then: (resolve: any) => resolve({ data: null, error: { code: 'MOCK', message: 'Mock client' } }),
+    };
+    return chainable;
+};
+
 // Create a mock client for build time when env vars are not available
 const createMockClient = () => ({
     auth: {
@@ -14,14 +37,8 @@ const createMockClient = () => ({
         signInWithPassword: async () => ({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
         signOut: async () => ({ error: null }),
     },
-    from: () => ({
-        select: () => ({ data: null, error: null }),
-        insert: () => ({ data: null, error: null }),
-        update: () => ({ data: null, error: null }),
-        delete: () => ({ data: null, error: null }),
-        eq: () => ({ data: null, error: null }),
-        single: () => ({ data: null, error: null }),
-    }),
+    from: () => createChainableMock(),
+    rpc: () => Promise.resolve({ data: null, error: { code: 'MOCK', message: 'Mock client' } }),
 });
 
 export function createClient() {

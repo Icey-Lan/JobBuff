@@ -43,14 +43,20 @@ export function Navbar() {
                 </Link>
 
                 {/* Quota Indicator */}
-                {user && quota && (
+                {user && (
                     <div className={styles.navbar__quota}>
                         <span className={styles['navbar__quota-icon']}>
                             <IconLightning size={14} />
                         </span>
                         <span>剩余:</span>
-                        <span className={styles['navbar__quota-count']}>{quota.remaining}</span>
+                        <span className={styles['navbar__quota-count']}>
+                            {quota ? quota.remaining : (loading ? '...' : '?')}
+                        </span>
                         <span>次</span>
+                        {/* Quota Rules Tooltip */}
+                        <span className={styles['navbar__quota-help']} title="配额规则：每次「新任务分析」消耗 1 次配额。同一任务的「装备锻造」和「试炼挑战」不额外扣费。">
+                            ?
+                        </span>
                     </div>
                 )}
 
@@ -59,9 +65,9 @@ export function Navbar() {
                     <div className={styles.navbar__auth}>
                         {user ? (
                             <>
-                                <span className={styles.navbar__email}>
+                                <Link href="/profile" className={styles.navbar__email}>
                                     {user.email?.split('@')[0]}
-                                </span>
+                                </Link>
                                 <button
                                     onClick={handleSignOut}
                                     className={styles.navbar__logout}

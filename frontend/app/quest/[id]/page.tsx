@@ -12,6 +12,7 @@ import { InterviewCard, InterviewQuestion } from '@/components/features/Intervie
 import { ActionCard, ActionPlanData } from '@/components/features/ActionCard';
 import { SkillRadar } from '@/components/features/SkillRadar';
 import { IconRadar, IconHammer, IconSword, IconSave, IconExport, IconCheck, IconX } from '@/components/icons';
+import { getQuest, updateQuest } from '@/lib/supabase/quests';
 
 // Mock data for demo
 const mockAnalysis = {
@@ -172,9 +173,29 @@ export default function QuestDetailPage() {
 
     // Load Data on Mount
     React.useEffect(() => {
-        const stored = localStorage.getItem(`jobbuff_quest_${questId}`);
-        if (stored) {
-            const data = JSON.parse(stored);
+        const loadQuestData = async () => {
+            const { data: quest, error } = await getQuest(questId);
+
+            if (error || !quest) {
+                console.error('Failed to load quest:', error);
+                setLoading(false);
+                return;
+            }
+
+            // Transform Supabase data to local format
+            const data = {
+                id: quest.id,
+                inputs: {
+                    jd_text: quest.jdText,
+                    resume_text: quest.resumeText,
+                    target_position: quest.targetPosition,
+                    target_salary: quest.targetSalary,
+                },
+                intel: quest.intel,
+                forge: quest.forge,
+                trial: quest.trial,
+                diffStatus: quest.diffStatus,
+            };
             setQuestData(data);
 
             // Setup Intel Data
@@ -261,23 +282,33 @@ export default function QuestDetailPage() {
 
                 // Restore Questions
                 const questionsData = data.trial.questions?.interview_questions || data.trial.questions || [];
+                const savedUserAnswers = data.trial.userAnswers || {};
                 if (Array.isArray(questionsData)) {
-                    const restoredQuestions = questionsData.map((q: any, idx: number) => ({
-                        id: q.id || `q-${idx}`,
-                        index: idx + 1,
-                        question: q.question,
-                        type: q.type,
-                        difficulty: q.difficulty,
-                        jdRelevance: q.jd_relevance || q.jdRelevance,
-                        commonMistakes: q.reference_answer?.common_mistakes || q.commonMistakes || [],
-                        referenceAnswer: q.reference_answer?.example_answer || q.reference_answer?.key_points?.join('; ') || q.referenceAnswer || '暂无参考',
-                        keyPoints: q.reference_answer?.key_points || q.keyPoints || []
-                    }));
+                    const restoredQuestions = questionsData.map((q: any, idx: number) => {
+                        const qId = q.id || `q-${idx}`;
+                        const savedAnswer = savedUserAnswers[qId];
+                        return {
+                            id: qId,
+                            index: idx + 1,
+                            question: q.question,
+                            type: q.type,
+                            difficulty: q.difficulty,
+                            jdRelevance: q.jd_relevance || q.jdRelevance,
+                            commonMistakes: q.reference_answer?.common_mistakes || q.commonMistakes || [],
+                            referenceAnswer: q.reference_answer?.example_answer || q.reference_answer?.key_points?.join('; ') || q.referenceAnswer || '暂无参考',
+                            keyPoints: q.reference_answer?.key_points || q.keyPoints || [],
+                            // Restore saved user answer and feedback
+                            userAnswer: savedAnswer?.userAnswer,
+                            feedback: savedAnswer?.feedback,
+                        };
+                    });
                     setQuestions(restoredQuestions);
                 }
             }
-        }
-        setLoading(false);
+            setLoading(false);
+        };
+
+        loadQuestData();
     }, [questId]);
 
 
@@ -303,9 +334,9 @@ export default function QuestDetailPage() {
                     });
                     const forgeResult = await res.json();
 
-                    // Update Quest Data
+                    // Update Quest Data in Supabase
+                    await updateQuest(questId, { forge: forgeResult });
                     const newQuestData = { ...questData, forge: forgeResult };
-                    localStorage.setItem(`jobbuff_quest_${questId}`, JSON.stringify(newQuestData));
                     setQuestData(newQuestData);
 
                     // Map Diffs with all fields
@@ -428,9 +459,10 @@ export default function QuestDetailPage() {
                         setQuestions(newQuestions);
                     }
 
-                    // Save Trial Data
-                    const newQuestData = { ...questData, trial: { actionPlan: actionResult, questions: interviewResult } };
-                    localStorage.setItem(`jobbuff_quest_${questId}`, JSON.stringify(newQuestData));
+                    // Save Trial Data to Supabase
+                    const trialData = { actionPlan: actionResult, questions: interviewResult };
+                    await updateQuest(questId, { trial: trialData });
+                    const newQuestData = { ...questData, trial: trialData };
                     setQuestData(newQuestData);
 
                 } catch (e) {
@@ -505,9 +537,9 @@ export default function QuestDetailPage() {
             });
             const forgeResult = await res.json();
 
-            // Update Quest Data
-            const newQuestData = { ...questData, forge: forgeResult, diffStatus: {} }; // Clear diffStatus
-            localStorage.setItem(`jobbuff_quest_${questId}`, JSON.stringify(newQuestData));
+            // Update Quest Data in Supabase
+            await updateQuest(questId, { forge: forgeResult, diffStatus: {} });
+            const newQuestData = { ...questData, forge: forgeResult, diffStatus: {} };
             setQuestData(newQuestData);
 
             // Map Diffs with all fields
@@ -538,15 +570,14 @@ export default function QuestDetailPage() {
         }
     };
 
-    // Forge handlers - with localStorage persistence + preview update
-    const saveDiffStatus = (updatedDiffs: DiffItem[]) => {
+    // Forge handlers - with Supabase persistence + preview update
+    const saveDiffStatus = async (updatedDiffs: DiffItem[]) => {
         if (questData) {
             const statusMap = updatedDiffs.reduce((acc, d) => {
                 acc[d.id] = d.status;
                 return acc;
             }, {} as Record<string, DiffStatus>);
-            const updatedQuestData = { ...questData, diffStatus: statusMap };
-            localStorage.setItem(`jobbuff_quest_${questId}`, JSON.stringify(updatedQuestData));
+            await updateQuest(questId, { diffStatus: statusMap });
         }
     };
 
@@ -554,8 +585,10 @@ export default function QuestDetailPage() {
     const updatePreview = (updatedDiffs: DiffItem[]) => {
         if (!questData?.forge?.markdown_export) return;
 
-        // Start with original resume text
-        let newPreview = questData.inputs?.resume_text || questData.forge.markdown_export;
+        // Always start with markdown_export (proper Markdown format)
+        // NOT resume_text which may be a JSON object from PDF parsing
+        const basePreview = questData.forge.customPreview || questData.forge.markdown_export;
+        let newPreview = basePreview;
 
         // Apply accepted changes to preview
         updatedDiffs.forEach(diff => {
@@ -617,18 +650,39 @@ export default function QuestDetailPage() {
             const data = await res.json();
             const fb = data.feedback;
 
-            setQuestions(questions.map(q =>
+            const feedbackData: { content: string; rating: 'good' | 'average' | 'poor' } = {
+                content: fb.suggestions?.join(' ') || fb.highlights?.join(' ') || '已收录',
+                rating: fb.overall_score?.startsWith('A') ? 'good' : fb.overall_score?.startsWith('B') ? 'average' : 'poor'
+            };
+
+            const updatedQuestions = questions.map(q =>
                 q.id === id
                     ? {
                         ...q,
                         userAnswer: answer,
-                        feedback: {
-                            content: fb.suggestions?.join(' ') || fb.highlights?.join(' ') || '已收录',
-                            rating: fb.overall_score?.startsWith('A') ? 'good' : fb.overall_score?.startsWith('B') ? 'average' : 'poor'
-                        }
+                        feedback: feedbackData
                     }
                     : q
-            ));
+            );
+            setQuestions(updatedQuestions);
+
+            // Persist user answers to Supabase
+            if (questData?.trial) {
+                const userAnswers = updatedQuestions.reduce((acc, q) => {
+                    if (q.userAnswer || q.feedback) {
+                        acc[q.id] = {
+                            userAnswer: q.userAnswer,
+                            feedback: q.feedback
+                        };
+                    }
+                    return acc;
+                }, {} as Record<string, { userAnswer?: string; feedback?: any }>);
+
+                await updateQuest(questId, {
+                    trial: { ...questData.trial, userAnswers }
+                });
+                setQuestData({ ...questData, trial: { ...questData.trial, userAnswers } });
+            }
         } catch (e) {
             console.error(e);
             alert('点评失败');
@@ -971,13 +1025,14 @@ export default function QuestDetailPage() {
                                                             <RetroButton
                                                                 variant="primary"
                                                                 size="small"
-                                                                onClick={() => {
+                                                                onClick={async () => {
                                                                     setResumePreview(editedPreview);
                                                                     setIsEditingPreview(false);
-                                                                    // Save to localStorage
+                                                                    // Save to Supabase
                                                                     if (questData) {
-                                                                        const updated = { ...questData, customPreview: editedPreview };
-                                                                        localStorage.setItem(`jobbuff_quest_${questId}`, JSON.stringify(updated));
+                                                                        await updateQuest(questId, {
+                                                                            forge: { ...questData.forge, customPreview: editedPreview }
+                                                                        });
                                                                     }
                                                                 }}
                                                             >

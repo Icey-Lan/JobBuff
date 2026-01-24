@@ -247,3 +247,30 @@
     padding-top: var(--space-md);
     border-top: var(--border-default);
 }
+
+/* Quota Warning */
+.quota-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    background-color: #FFF0F0;
+    border: 2px solid var(--color-trap-red);
+    border-radius: var(--radius-sm);
+    color: var(--color-trap-red);
+    font-weight: 600;
+}
+
+.quota-warning__link {
+    margin-left: auto;
+    color: var(--color-buff-orange);
+    text-decoration: none;
+    font-weight: 700;
+    transition: color var(--transition-fast);
+}
+
+.quota-warning__link:hover {
+    color: var(--color-ink-black);
+    text-decoration: underline;
+}

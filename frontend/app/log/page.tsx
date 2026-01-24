@@ -18,6 +18,8 @@ import styles from './page.module.css';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { PixelCard } from '@/components/ui/PixelCard';
 import { IconScroll, IconRadar, IconTarget, IconX, IconTrendingUp, IconPieChart } from '@/components/icons';
+import { useAuth } from '@/components/AuthProvider';
+import { getUserQuests, deleteQuest } from '@/lib/supabase/quests';
 
 interface QuestSummary {
     id: string;
@@ -37,6 +39,7 @@ interface LogStats {
 }
 
 export default function LogPage() {
+    const { user } = useAuth();
     const [quests, setQuests] = useState<QuestSummary[]>([]);
     const [stats, setStats] = useState<LogStats>({ totalQuests: 0, avgScore: 0, completedForges: 0, weeklyNew: 0 });
     const [chartData, setChartData] = useState<any[]>([]);
@@ -44,82 +47,92 @@ export default function LogPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Load all quests from localStorage
-        const loadedQuests: QuestSummary[] = [];
-
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key?.startsWith('jobbuff_quest_')) {
-                try {
-                    const data = JSON.parse(localStorage.getItem(key) || '');
-                    const intel = data.intel;
-
-                    loadedQuests.push({
-                        id: data.id,
-                        company: intel?.jd_insight?.role_reality?.team_inference || '未知公司',
-                        role: intel?.jd_insight?.role_reality?.title || data.inputs?.target_position || '未知岗位',
-                        score: intel?.match_analysis?.overall_score || 0,
-                        createdAt: data.createdAt,
-                        status: data.trial ? 'completed' : data.forge ? 'in_progress' : 'in_progress',
-                        salary: intel?.jd_insight?.salary_analysis?.range,
-                    });
-                } catch (e) {
-                    console.error('Failed to parse quest:', key, e);
-                }
+        const loadQuests = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
             }
-        }
 
-        // Sort by creation date (newest first)
-        loadedQuests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setQuests(loadedQuests);
+            const { data: questsData, error } = await getUserQuests(user.id);
 
-        // Calculate Stats
-        const total = loadedQuests.length;
-        const totalScore = loadedQuests.reduce((acc, q) => acc + q.score, 0);
-        const avg = total > 0 ? Math.round(totalScore / total) : 0;
-        const completed = loadedQuests.filter(q => q.status === 'completed').length;
+            if (error) {
+                console.error('Failed to load quests:', error);
+                setLoading(false);
+                return;
+            }
 
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const weekly = loadedQuests.filter(q => new Date(q.createdAt) >= oneWeekAgo).length;
+            // Transform to QuestSummary format
+            const loadedQuests: QuestSummary[] = questsData.map(q => {
+                const intel = q.intel;
+                return {
+                    id: q.id,
+                    company: intel?.jd_insight?.role_reality?.team_inference || '未知公司',
+                    role: intel?.jd_insight?.role_reality?.title || q.targetPosition || '未知岗位',
+                    score: intel?.match_analysis?.overall_score || 0,
+                    createdAt: q.createdAt,
+                    status: q.trial ? 'completed' as const : q.forge ? 'in_progress' as const : 'in_progress' as const,
+                    salary: intel?.jd_insight?.salary_analysis?.range,
+                };
+            });
 
-        setStats({
-            totalQuests: total,
-            avgScore: avg,
-            completedForges: completed,
-            weeklyNew: weekly
-        });
+            // Sort by creation date (newest first)
+            loadedQuests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            setQuests(loadedQuests);
 
-        // Prepare Chart Data (Trend) - Reverse for chronological order
-        const trend = [...loadedQuests].reverse().map(q => ({
-            name: new Date(q.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }),
-            score: q.score,
-            fullDate: q.createdAt,
-        }));
-        setChartData(trend);
+            // Calculate Stats
+            const total = loadedQuests.length;
+            const totalScore = loadedQuests.reduce((acc, q) => acc + q.score, 0);
+            const avg = total > 0 ? Math.round(totalScore / total) : 0;
+            const completed = loadedQuests.filter(q => q.status === 'completed').length;
 
-        // Prepare Distribution Data (Score Ranges)
-        const ranges = [
-            { name: '<60', count: 0, color: '#ff4d4f' },
-            { name: '60-75', count: 0, color: 'var(--color-buff-orange)' },
-            { name: '75-90', count: 0, color: 'var(--color-loot-green)' },
-            { name: '>90', count: 0, color: '#1890ff' },
-        ];
+            const now = new Date();
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const weekly = loadedQuests.filter(q => new Date(q.createdAt) >= oneWeekAgo).length;
 
-        loadedQuests.forEach(q => {
-            if (q.score < 60) ranges[0].count++;
-            else if (q.score < 75) ranges[1].count++;
-            else if (q.score < 90) ranges[2].count++;
-            else ranges[3].count++;
-        });
-        setDistData(ranges);
+            setStats({
+                totalQuests: total,
+                avgScore: avg,
+                completedForges: completed,
+                weeklyNew: weekly
+            });
 
-        setLoading(false);
-    }, []);
+            // Prepare Chart Data (Trend) - Reverse for chronological order
+            const trend = [...loadedQuests].reverse().map(q => ({
+                name: new Date(q.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }),
+                score: q.score,
+                fullDate: q.createdAt,
+            }));
+            setChartData(trend);
 
-    const handleDelete = (id: string) => {
+            // Prepare Distribution Data (Score Ranges)
+            const ranges = [
+                { name: '<60', count: 0, color: '#ff4d4f' },
+                { name: '60-75', count: 0, color: 'var(--color-buff-orange)' },
+                { name: '75-90', count: 0, color: 'var(--color-loot-green)' },
+                { name: '>90', count: 0, color: '#1890ff' },
+            ];
+
+            loadedQuests.forEach(q => {
+                if (q.score < 60) ranges[0].count++;
+                else if (q.score < 75) ranges[1].count++;
+                else if (q.score < 90) ranges[2].count++;
+                else ranges[3].count++;
+            });
+            setDistData(ranges);
+
+            setLoading(false);
+        };
+
+        loadQuests();
+    }, [user]);
+
+    const handleDelete = async (id: string) => {
         if (confirm('确定要删除这个任务吗？')) {
-            localStorage.removeItem(`jobbuff_quest_${id}`);
+            const { error } = await deleteQuest(id);
+            if (error) {
+                alert('删除失败');
+                return;
+            }
             const newQuests = quests.filter(q => q.id !== id);
             setQuests(newQuests);
 

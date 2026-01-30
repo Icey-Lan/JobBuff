@@ -1,0 +1,907 @@
+/* ==========================================================================
+   Landing Page Styles - JobBuff (Wispr Flow Inspired Redesign)
+   Large typography, generous spacing, clear visual hierarchy
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base Layout
+   -------------------------------------------------------------------------- */
+.landing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Language Toggle
+   -------------------------------------------------------------------------- */
+.heroTopBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+    animation: fadeInDown 0.6s ease-out;
+}
+
+.langToggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+    box-shadow: var(--shadow-sm);
+}
+
+.langBtn {
+    background: none;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-pixel-gray-dark);
+    cursor: pointer;
+    padding: var(--space-sm) var(--space-md);
+    transition: all var(--transition-fast);
+}
+
+.langBtn:hover {
+    color: var(--color-buff-orange);
+}
+
+.langBtnActive {
+    color: var(--color-ink-black);
+    background-color: var(--color-buff-orange);
+}
+
+.langDivider {
+    color: var(--color-pixel-gray);
+    font-weight: 300;
+}
+
+/* --------------------------------------------------------------------------
+   Hero Section - LARGE & BOLD
+   -------------------------------------------------------------------------- */
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 160px var(--space-xl) 120px;
+    max-width: 1200px;
+    width: 100%;
+    min-height: 100vh;
+    justify-content: center;
+}
+
+.heroBadge {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-ink-black);
+    background-color: var(--color-buff-orange);
+    border: var(--border-default);
+    box-shadow: var(--shadow-sm);
+}
+
+.heroTitle {
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: var(--space-xl);
+    color: var(--color-ink-black);
+    letter-spacing: -0.02em;
+}
+
+.heroTitleHighlight {
+    color: var(--color-buff-orange);
+    position: relative;
+    display: inline;
+}
+
+.heroTitleHighlight::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    width: 100%;
+    height: 16px;
+    background-color: var(--color-buff-orange);
+    opacity: 0.2;
+    z-index: -1;
+}
+
+.cursor {
+    animation: blink 1s step-end infinite;
+    color: var(--color-buff-orange);
+    font-weight: 400;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+.heroSlogan {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-mana-blue);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md) var(--space-xl);
+    background-color: #F0F4FF;
+    border: var(--border-default);
+    display: inline-block;
+    animation: fadeIn 0.8s ease-out 0.3s backwards;
+}
+
+.heroSubtitle {
+    font-size: 1.375rem;
+    color: var(--color-ink-black);
+    opacity: 0.75;
+    margin-bottom: var(--space-2xl);
+    max-width: 700px;
+    line-height: 1.7;
+    animation: fadeIn 0.8s ease-out 0.5s backwards;
+}
+
+.heroCta {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.7s backwards;
+}
+
+.heroCta button {
+    font-size: 1.125rem;
+    padding: var(--space-md) var(--space-xl);
+}
+
+.scrollHint {
+    margin-top: var(--space-3xl);
+    animation: bounce 2s infinite;
+    opacity: 0.5;
+}
+
+@keyframes bounce {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-12px);
+    }
+
+    60% {
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Generic Section - More Space
+   -------------------------------------------------------------------------- */
+.section {
+    width: 100%;
+    max-width: 1200px;
+    padding: 100px var(--space-xl);
+}
+
+.sectionTitle {
+    text-align: center;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    margin-bottom: 60px;
+    color: var(--color-ink-black);
+    letter-spacing: -0.01em;
+}
+
+/* --------------------------------------------------------------------------
+   Pain Points Section - Soft Dark, Rounded, Wispr Flow Style
+   -------------------------------------------------------------------------- */
+.painSection {
+    width: 100%;
+    padding: 100px var(--space-xl);
+    background-color: var(--color-ink-black);
+    border-radius: 48px;
+    margin: var(--space-xl) 0;
+    /* Full width - no max-width constraint */
+}
+
+.painSection .sectionTitle {
+    color: transparent;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5F0E8 50%, #FFB366 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 4px 20px rgba(255, 179, 102, 0.15);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    position: relative;
+}
+
+/* Decorative line under title */
+.painSection .sectionTitle::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #FF8C42, #FFB366);
+    margin: 16px auto 0;
+    border-radius: 2px;
+}
+
+.painPointsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xl);
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+    .painPointsGrid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+
+    .painSection {
+        border-radius: 24px;
+        margin: var(--space-md);
+        padding: 60px var(--space-lg);
+    }
+}
+
+.painPointCard {
+    display: flex;
+    flex-direction: column;
+    background-color: #F5F0E8;
+    /* Warm cream/off-white - light cards on dark bg */
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.painPointCard:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+}
+
+.painPointBefore {
+    text-align: center;
+    padding: var(--space-xl) var(--space-lg) var(--space-lg);
+}
+
+/* Floating animation - gentle up and down with slight rotation */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+        filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.1));
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(1.5deg);
+        filter: drop-shadow(0 20px 24px rgba(0, 0, 0, 0.15));
+    }
+}
+
+/* Wobble animation - side to side with rotation */
+@keyframes wobble {
+
+    0%,
+    100% {
+        transform: translateX(0) rotate(0deg) scale(1);
+    }
+
+    25% {
+        transform: translateX(-8px) rotate(-2deg) scale(1.02);
+    }
+
+    75% {
+        transform: translateX(8px) rotate(2deg) scale(1.02);
+    }
+}
+
+/* Bounce animation - playful bouncing effect */
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+        filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.1));
+    }
+
+    25% {
+        transform: translateY(-10px) scale(1.03);
+    }
+
+    50% {
+        transform: translateY(-18px) scale(1);
+        filter: drop-shadow(0 25px 30px rgba(0, 0, 0, 0.12));
+    }
+
+    75% {
+        transform: translateY(-8px) scale(1.02);
+    }
+}
+
+/* Pulse glow on hover */
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 rgba(255, 140, 66, 0));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 20px rgba(255, 140, 66, 0.4));
+    }
+}
+
+.painPointIllustration {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto var(--space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    overflow: visible;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+}
+
+.painPointIllustration:hover {
+    transform: scale(1.15) rotate(-2deg);
+    animation: pulseGlow 1s ease-in-out infinite;
+}
+
+/* Each card has unique animation style */
+.painPointCard:nth-child(1) .painPointIllustration {
+    animation: float 3.5s ease-in-out infinite;
+}
+
+.painPointCard:nth-child(2) .painPointIllustration {
+    animation: wobble 4s ease-in-out infinite;
+    animation-delay: 0.3s;
+}
+
+.painPointCard:nth-child(3) .painPointIllustration {
+    animation: bounce 3s ease-in-out infinite;
+    animation-delay: 0.6s;
+}
+
+.painPointTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: #2D2A26;
+    /* Dark text on light card */
+}
+
+.painPointDesc {
+    font-size: 0.9375rem;
+    color: #57534E;
+    /* Warm dark gray */
+    line-height: 1.6;
+    margin: 0;
+}
+
+.painPointAfter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    background-color: #2D2A26;
+    /* Dark button on light card */
+    border-radius: 12px;
+    margin: 0 var(--space-md) var(--space-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #F5F0E8;
+    /* Light text */
+}
+
+.painPointAfter svg {
+    flex-shrink: 0;
+}
+
+
+/* --------------------------------------------------------------------------
+   Features Section - Larger Cards
+   -------------------------------------------------------------------------- */
+.featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xl);
+}
+
+@media (max-width: 900px) {
+    .featuresGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.featureCard {
+    text-align: center;
+    padding: var(--space-xl);
+}
+
+.featureIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto var(--space-lg);
+    background-color: var(--color-paper-canvas);
+    border: var(--border-default);
+}
+
+.featureIcon svg {
+    width: 56px;
+    height: 56px;
+}
+
+.featureHeader {
+    margin-bottom: var(--space-lg);
+}
+
+.featureTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: var(--color-ink-black);
+}
+
+.featureSubtitle {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-buff-orange);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.featureDesc {
+    font-size: 1.0625rem;
+    color: var(--color-ink-black);
+    opacity: 0.75;
+    line-height: 1.7;
+    margin-bottom: var(--space-lg);
+}
+
+.featureTags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: var(--space-md);
+}
+
+.featureTag {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    background-color: transparent;
+    border: 2px solid var(--color-ink-black);
+    border-radius: 50px;
+    color: var(--color-ink-black);
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.featureTag:hover {
+    background-color: var(--color-ink-black);
+    color: var(--color-card-white);
+}
+
+/* --------------------------------------------------------------------------
+   How It Works Section - Cleaner Steps
+   -------------------------------------------------------------------------- */
+.stepsContainer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 200px;
+    padding: var(--space-lg);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+.stepNumber {
+    position: absolute;
+    top: -16px;
+    left: -16px;
+    width: 36px;
+    height: 36px;
+    background-color: var(--color-buff-orange);
+    border: var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.stepIcon {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-md);
+}
+
+.stepTitle {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: var(--color-ink-black);
+}
+
+.stepDesc {
+    font-size: 0.9375rem;
+    color: var(--color-pixel-gray-dark);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.stepConnector {
+    display: flex;
+    align-items: center;
+    padding-top: 60px;
+}
+
+.stepLine {
+    width: 30px;
+    height: 3px;
+    background-color: var(--color-pixel-gray-dark);
+}
+
+.stepArrow {
+    color: var(--color-buff-orange);
+    font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+    .stepsContainer {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .step {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .stepConnector {
+        transform: rotate(90deg);
+        padding: var(--space-md) 0;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Stats Section - Bold Numbers
+   -------------------------------------------------------------------------- */
+.statsSection {
+    width: 100%;
+    padding: 80px var(--space-xl);
+    background-color: var(--color-ink-black);
+    border-radius: 48px;
+    margin: var(--space-xl) 0;
+}
+
+.statsGrid {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.statCard {
+    text-align: center;
+    color: var(--color-card-white);
+}
+
+.statValue {
+    font-family: var(--font-mono);
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    font-weight: 700;
+    color: var(--color-buff-orange);
+    line-height: 1;
+}
+
+.statUnit {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: var(--color-card-white);
+    margin-left: 4px;
+}
+
+.statLabel {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: var(--space-md);
+    color: var(--color-pixel-gray);
+}
+
+/* --------------------------------------------------------------------------
+   FAQ Section - Cleaner Accordion
+   -------------------------------------------------------------------------- */
+.faqContainer {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faqItem {
+    border: var(--border-default);
+    margin-bottom: var(--space-md);
+    background-color: var(--color-card-white);
+    overflow: hidden;
+}
+
+.faqItemOpen {
+    box-shadow: var(--shadow-sm);
+}
+
+.faqQuestion {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-ink-black);
+    transition: background-color var(--transition-fast);
+}
+
+.faqQuestion:hover {
+    background-color: var(--color-paper-canvas);
+}
+
+.faqQuestion svg {
+    transition: transform var(--transition-normal);
+    flex-shrink: 0;
+    margin-left: var(--space-lg);
+}
+
+.faqIconOpen {
+    transform: rotate(180deg);
+}
+
+.faqAnswer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+.faqAnswerOpen {
+    max-height: 300px;
+    padding: 0 var(--space-lg) var(--space-lg);
+}
+
+.faqAnswer p {
+    font-size: 1.0625rem;
+    color: var(--color-ink-black);
+    opacity: 0.75;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.faqToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    width: 100%;
+    padding: var(--space-lg);
+    margin-top: var(--space-lg);
+    background-color: var(--color-paper-canvas);
+    border: var(--border-default);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-mana-blue);
+    transition: all var(--transition-fast);
+}
+
+.faqToggle:hover {
+    background-color: var(--color-pixel-gray);
+}
+
+.faqToggle svg {
+    transition: transform var(--transition-normal);
+}
+
+.faqToggleIconUp {
+    transform: rotate(180deg);
+}
+
+/* --------------------------------------------------------------------------
+   Final CTA Section - Impactful
+   -------------------------------------------------------------------------- */
+.ctaSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 120px var(--space-xl);
+    max-width: 800px;
+}
+
+.ctaTitle {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    margin-bottom: var(--space-2xl);
+    color: var(--color-ink-black);
+    line-height: 1.3;
+}
+
+.ctaSection button {
+    font-size: 1.25rem;
+    padding: var(--space-lg) var(--space-2xl);
+}
+
+.ctaBenefits {
+    display: flex;
+    gap: var(--space-xl);
+    margin-top: var(--space-xl);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.ctaBenefit {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 1rem;
+    color: var(--color-ink-black);
+}
+
+.githubLink {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-2xl);
+    padding: var(--space-md) var(--space-lg);
+    font-size: 1rem;
+    color: var(--color-ink-black);
+    text-decoration: none;
+    border: 1px solid var(--color-pixel-gray-dark);
+    transition: all var(--transition-fast);
+}
+
+.githubLink:hover {
+    background-color: var(--color-ink-black);
+    color: var(--color-card-white);
+    border-color: var(--color-ink-black);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Adjustments
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    .hero {
+        padding: 120px var(--space-lg) 80px;
+    }
+
+    .heroSlogan {
+        font-size: 1.125rem;
+    }
+
+    .heroSubtitle {
+        font-size: 1.125rem;
+    }
+
+    .section {
+        padding: 80px var(--space-lg);
+    }
+
+    .sectionTitle {
+        margin-bottom: 40px;
+    }
+
+    .statsGrid {
+        gap: var(--space-2xl);
+    }
+
+    .heroTopBar {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .ctaSection {
+        padding: 80px var(--space-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    .heroCta {
+        flex-direction: column;
+        width: 100%;
+        padding: 0 var(--space-md);
+    }
+
+    .heroCta button {
+        width: 100%;
+    }
+
+    .ctaBenefits {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+}

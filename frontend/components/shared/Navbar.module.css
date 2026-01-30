@@ -111,14 +111,15 @@
 }
 
 .navbar__quota-help {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 16px;
     height: 16px;
     margin-left: var(--space-xs);
-    background-color: var(--color-pixel-gray);
-    color: var(--color-ink-black);
+    background-color: var(--color-quest-blue, #4A90D9);
+    color: var(--color-card-white);
     border-radius: 50%;
     font-size: 0.625rem;
     font-weight: 700;
@@ -129,6 +130,53 @@
 .navbar__quota-help:hover {
     background-color: var(--color-buff-orange);
     color: var(--color-card-white);
+}
+
+/* Custom Tooltip */
+.navbar__quota-help::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 260px;
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-ink-black);
+    color: var(--color-card-white);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: left;
+    border: var(--border-default);
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all var(--transition-fast);
+    pointer-events: none;
+}
+
+/* Tooltip Arrow */
+.navbar__quota-help::before {
+    content: '';
+    position: absolute;
+    top: calc(100% + 2px);
+    right: 4px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent var(--color-ink-black) transparent;
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
+}
+
+.navbar__quota-help:hover::after,
+.navbar__quota-help:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 /* Mobile responsive */

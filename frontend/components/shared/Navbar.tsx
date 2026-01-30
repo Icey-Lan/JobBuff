@@ -31,7 +31,7 @@ export function Navbar() {
             <nav className={styles.navbar__nav}>
                 <Link href="/" className={styles.navbar__link}>
                     <IconTarget size={16} />
-                    <span>任务板</span>
+                    <span>首页</span>
                 </Link>
                 <Link href="/quest/new" className={styles.navbar__link}>
                     <IconScroll size={16} />
@@ -43,6 +43,7 @@ export function Navbar() {
                 </Link>
 
                 {/* Quota Indicator */}
+
                 {user && (
                     <div className={styles.navbar__quota}>
                         <span className={styles['navbar__quota-icon']}>
@@ -54,7 +55,7 @@ export function Navbar() {
                         </span>
                         <span>次</span>
                         {/* Quota Rules Tooltip */}
-                        <span className={styles['navbar__quota-help']} title="配额规则：每次「新任务分析」消耗 1 次配额。同一任务的「装备锻造」和「试炼挑战」不额外扣费。">
+                        <span className={styles['navbar__quota-help']} data-tooltip="配额规则：每次「新任务分析」消耗 1 次配额。同一任务的「装备锻造」和「试炼挑战」不额外扣费。">
                             ?
                         </span>
                     </div>

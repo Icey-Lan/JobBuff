@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import styles from './ActionCard.module.css';
 import { PixelCard } from '@/components/ui/PixelCard';
+import { IconSignal, IconChat } from '@/components/icons';
 
 export interface ActionPlanData {
     strategy: {
@@ -80,87 +81,83 @@ export function ActionCard({ data }: ActionCardProps) {
 
             {/* Channels Section */}
             {data.channels && data.channels.length > 0 && (
-                <div className={styles['channels-section']} style={{ margin: '16px 0' }}>
-                    <h3>📡 投递渠道</h3>
-                    <div style={{ display: 'grid', gap: 12 }}>
-                        {data.channels.map((channel, i) => (
-                            <div key={i} style={{
-                                padding: 12,
-                                border: '1px solid #ddd',
-                                borderRadius: 8,
-                                background: 'rgba(255,255,255,0.5)'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <strong>{channel.name}</strong>
-                                    <span style={{
-                                        fontSize: '0.75rem',
-                                        padding: '2px 6px',
-                                        borderRadius: 4,
-                                        background: channel.successRate === 'high' ? 'var(--color-loot-green)' : 'var(--color-buff-orange)',
-                                        color: 'white'
-                                    }}>
-                                        成功率: {channel.successRate === 'high' ? '高' : channel.successRate === 'medium' ? '中' : '低'}
-                                    </span>
+                <PixelCard>
+                    <div className={styles['channels-section']}>
+                        <h3><IconSignal size={24} color="var(--color-buff-orange)" /> 投递渠道</h3>
+                        <div className={styles['channels-grid']}>
+                            {data.channels.map((channel, i) => (
+                                <div key={i} className={styles['channel-item']}>
+                                    <div className={styles['channel-header']}>
+                                        <strong>{channel.name}</strong>
+                                        <span className={`${styles['channel-badge']} ${channel.successRate === 'high' ? styles['channel-badge--high'] : channel.successRate === 'medium' ? styles['channel-badge--medium'] : styles['channel-badge--low']}`}>
+                                            成功率: {channel.successRate === 'high' ? '高' : channel.successRate === 'medium' ? '中' : '低'}
+                                        </span>
+                                    </div>
+                                    <div className={styles['channel-desc']}>{channel.howToFind}</div>
                                 </div>
-                                <div style={{ fontSize: '0.85rem', color: '#666' }}>{channel.howToFind}</div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                </PixelCard>
             )}
 
             {/* Greetings Section */}
-            <div className={styles['greetings-section']}>
-                <h3>👋 开场白技能</h3>
+            <PixelCard>
+                <div className={styles['greetings-section']}>
+                    <h3><IconChat size={24} color="var(--color-buff-orange)" /> 智能打招呼</h3>
 
-                {/* Professional */}
-                <div className={styles['greeting-item']}>
-                    <div className={styles['greeting-header']}>
-                        <span>专业风 (适合技术/外企)</span>
-                        <button
-                            className={styles['copy-btn']}
-                            onClick={() => handleCopy(data.greetings.professional.content, 'pro')}
-                        >
-                            {copied === 'pro' ? '已复制!' : '[复制]'}
-                        </button>
+                    {/* Professional */}
+                    <div className={styles['greeting-item']}>
+                        <div className={styles['greeting-header']}>
+                            <span className={styles['greeting-style']}>专业风</span>
+                            <span className={styles['greeting-target']}>适合技术/外企</span>
+                            <button
+                                className={styles['copy-btn']}
+                                onClick={() => handleCopy(data.greetings.professional.content, 'pro')}
+                            >
+                                {copied === 'pro' ? '已复制!' : '[复制]'}
+                            </button>
+                        </div>
+                        <div className={styles['greeting-content']}>
+                            {data.greetings.professional.content}
+                        </div>
                     </div>
-                    <div className={styles['greeting-content']}>
-                        {data.greetings.professional.content}
+
+                    {/* Passionate */}
+                    <div className={styles['greeting-item']}>
+                        <div className={styles['greeting-header']}>
+                            <span className={styles['greeting-style']}>热情风</span>
+                            <span className={styles['greeting-target']}>适合创业/快消</span>
+                            <button
+                                className={styles['copy-btn']}
+                                onClick={() => handleCopy(data.greetings.passionate.content, 'passion')}
+                            >
+                                {copied === 'passion' ? '已复制!' : '[复制]'}
+                            </button>
+                        </div>
+                        <div className={styles['greeting-content']}>
+                            {data.greetings.passionate.content}
+                        </div>
+                    </div>
+
+                    {/* Concise */}
+                    <div className={styles['greeting-item']}>
+                        <div className={styles['greeting-header']}>
+                            <span className={styles['greeting-style']}>简洁风</span>
+                            <span className={styles['greeting-target']}>适合海投</span>
+                            <button
+                                className={styles['copy-btn']}
+                                onClick={() => handleCopy(data.greetings.concise.content, 'concise')}
+                            >
+                                {copied === 'concise' ? '已复制!' : '[复制]'}
+                            </button>
+                        </div>
+                        <div className={styles['greeting-content']}>
+                            {data.greetings.concise.content}
+                        </div>
                     </div>
                 </div>
-
-                {/* Passionate */}
-                <div className={styles['greeting-item']}>
-                    <div className={styles['greeting-header']}>
-                        <span>热情风 (适合创业/快消)</span>
-                        <button
-                            className={styles['copy-btn']}
-                            onClick={() => handleCopy(data.greetings.passionate.content, 'passion')}
-                        >
-                            {copied === 'passion' ? '已复制!' : '[复制]'}
-                        </button>
-                    </div>
-                    <div className={styles['greeting-content']}>
-                        {data.greetings.passionate.content}
-                    </div>
-                </div>
-
-                {/* Concise */}
-                <div className={styles['greeting-item']}>
-                    <div className={styles['greeting-header']}>
-                        <span>简洁风 (适合海投)</span>
-                        <button
-                            className={styles['copy-btn']}
-                            onClick={() => handleCopy(data.greetings.concise.content, 'concise')}
-                        >
-                            {copied === 'concise' ? '已复制!' : '[复制]'}
-                        </button>
-                    </div>
-                    <div className={styles['greeting-content']}>
-                        {data.greetings.concise.content}
-                    </div>
-                </div>
-            </div>
+            </PixelCard>
         </div>
     );
 }

@@ -65,7 +65,7 @@
     border-right: var(--border-default);
     cursor: pointer;
     transition: all var(--transition-fast);
-    color: var(--color-pixel-gray-dark);
+    color: var(--color-ink-black);
 }
 
 .stage-tab:last-child {
@@ -82,7 +82,7 @@
 }
 
 .stage-tab--completed {
-    color: var(--color-loot-green);
+    color: var(--color-ink-black);
 }
 
 .stage-tab__icon {

@@ -249,3 +249,24 @@ export function IconTrash({ size = 24, color = 'currentColor', className }: Icon
     );
 }
 
+export function IconSignal({ size = 24, color = 'currentColor', className }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+            <rect x="2" y="14" width="4" height="6" fill={color} />
+            <rect x="8" y="10" width="4" height="10" fill={color} />
+            <rect x="14" y="6" width="4" height="14" fill={color} />
+            <rect x="20" y="2" width="4" height="18" fill={color} />
+        </svg>
+    );
+}
+
+export function IconChat({ size = 24, color = 'currentColor', className }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M4 4H20V16H10L6 20V16H4V4Z" fill={color} />
+            <rect x="7" y="8" width="10" height="2" fill="white" fillOpacity="0.5" />
+            <rect x="7" y="12" width="7" height="2" fill="white" fillOpacity="0.5" />
+        </svg>
+    );
+}
+

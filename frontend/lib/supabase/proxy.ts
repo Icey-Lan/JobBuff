@@ -15,6 +15,7 @@ export async function updateSession(request: NextRequest) {
                     return request.cookies.getAll();
                 },
                 setAll(cookiesToSet) {
+                    console.log('[Middleware] setAll called with', cookiesToSet.length, 'cookies:', cookiesToSet.map(c => c.name));
                     cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     );
@@ -29,29 +30,14 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    // Refresh session if expired
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    // 只刷新 session，不做任何重定向
+    // 重要：这会确保 OAuth 回调后的 cookies 被正确设置
+    await supabase.auth.getUser();
 
-    // Protected routes - redirect to login if not authenticated
-    const protectedPaths = ['/quest', '/log', '/profile'];
-    const isProtectedPath = protectedPaths.some(path =>
-        request.nextUrl.pathname.startsWith(path)
-    );
-
-    if (!user && isProtectedPath) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/login';
-        url.searchParams.set('redirect', request.nextUrl.pathname);
-        return NextResponse.redirect(url);
-    }
-
-    // Redirect logged-in users away from login page
-    if (user && request.nextUrl.pathname === '/login') {
-        const url = request.nextUrl.clone();
-        url.pathname = '/';
-        return NextResponse.redirect(url);
+    // DEBUG: 打印最终 response 中设置的所有 cookies
+    const responseCookies = supabaseResponse.cookies.getAll();
+    if (responseCookies.length > 0) {
+        console.log('[Middleware] Response cookies being sent:', responseCookies.map(c => ({ name: c.name, len: c.value?.length })));
     }
 
     return supabaseResponse;

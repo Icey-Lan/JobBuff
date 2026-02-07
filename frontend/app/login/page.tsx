@@ -7,7 +7,7 @@ import { trackUserAction } from '@/lib/analytics';
 import styles from './page.module.css';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { PixelCard } from '@/components/ui/PixelCard';
-import { IconGamepad } from '@/components/icons';
+import { IconGamepad, IconGitHub, IconGoogle } from '@/components/icons';
 
 // Inner component that uses useSearchParams
 function LoginForm() {
@@ -18,6 +18,17 @@ function LoginForm() {
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const searchParams = useSearchParams();
     const supabase = createClient();
+
+    const handleOAuthLogin = async (provider: 'github' | 'google') => {
+        setLoading(true);
+        const redirectTo = searchParams.get('redirect') || '/';
+        await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`
+            }
+        });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -138,6 +149,29 @@ function LoginForm() {
                     {loading ? '加载中...' : (isSignUp ? '🚀 创建账号' : '⚔️ 开始冒险')}
                 </RetroButton>
             </form>
+
+            <div className={styles['oauth-divider']}>或</div>
+
+            <div className={styles['oauth-buttons']}>
+                <button
+                    type="button"
+                    className={`${styles['oauth-button']} ${styles['oauth-button--github']}`}
+                    onClick={() => handleOAuthLogin('github')}
+                    disabled={loading}
+                >
+                    <IconGitHub size={20} />
+                    使用 GitHub 登录
+                </button>
+                <button
+                    type="button"
+                    className={`${styles['oauth-button']} ${styles['oauth-button--google']}`}
+                    onClick={() => handleOAuthLogin('google')}
+                    disabled={loading}
+                >
+                    <IconGoogle size={20} />
+                    使用 Google 登录
+                </button>
+            </div>
 
             <div className={styles['login-footer']}>
                 <button

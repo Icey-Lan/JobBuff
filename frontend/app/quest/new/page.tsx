@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.module.css';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { PixelCard } from '@/components/ui/PixelCard';
-import { IconUpload, IconFile, IconX, IconTarget, IconRadar, IconWarning } from '@/components/icons';
+import { IconFile, IconX, IconTarget, IconRadar, IconWarning } from '@/components/icons';
 import { useAuth } from '@/components/AuthProvider';
-import { decrementQuota, createQuest } from '@/lib/supabase/quests';
 import { ResumeLibrary } from '@/components/features/ResumeLibrary';
 import { createResume, updateResumeUsage, ResumeData } from '@/lib/supabase/resumes';
 
@@ -19,13 +18,23 @@ export default function NewQuestPage() {
     // Resume State - supports both library selection and new upload
     const [selectedResume, setSelectedResume] = useState<ResumeData | null>(null);
     const [newResumeFile, setNewResumeFile] = useState<File | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
-
     // Other State
     const [jdText, setJdText] = useState('');
     const [targetRole, setTargetRole] = useState('');
     const [targetSalary, setTargetSalary] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [createIdempotencyKey, setCreateIdempotencyKey] = useState<string | null>(null);
+
+    const resetCreateIdempotencyKey = () => {
+        setCreateIdempotencyKey(null);
+    };
+
+    const buildIdempotencyKey = () => {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID();
+        }
+        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    };
 
     // Quota check
     const hasQuota = quota && quota.remaining > 0;
@@ -39,18 +48,21 @@ export default function NewQuestPage() {
 
     // Handle resume selection from library
     const handleResumeSelect = (resume: ResumeData | null) => {
+        resetCreateIdempotencyKey();
         setSelectedResume(resume);
         setNewResumeFile(null); // Clear new upload if selecting from library
     };
 
     // Handle new resume upload (from ResumeLibrary component)
     const handleNewUpload = (file: File) => {
+        resetCreateIdempotencyKey();
         setNewResumeFile(file);
         setSelectedResume(null); // Clear library selection if uploading new
     };
 
     // Clear new upload
     const clearNewUpload = () => {
+        resetCreateIdempotencyKey();
         setNewResumeFile(null);
     };
 
@@ -65,6 +77,11 @@ export default function NewQuestPage() {
         setIsSubmitting(true);
 
         try {
+            const idempotencyKey = createIdempotencyKey ?? buildIdempotencyKey();
+            if (!createIdempotencyKey) {
+                setCreateIdempotencyKey(idempotencyKey);
+            }
+
             let resumeText = '';
             let usedResumeId: string | null = null;
 
@@ -146,22 +163,26 @@ export default function NewQuestPage() {
 
             const data = await response.json();
 
-            // Save to Supabase
             if (!user) {
                 throw new Error('用户未登录');
             }
 
-            const { data: quest, error: questError } = await createQuest({
-                userId: user.id,
-                jdText: jdText,
-                resumeText: resumeText,
-                targetPosition: targetRole,
-                targetSalary: targetSalary,
-                intel: data,
+            const createQuestResponse = await fetch('/api/quests/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jd_text: jdText,
+                    resume_text: resumeText,
+                    target_position: targetRole,
+                    target_salary: targetSalary,
+                    intel: data,
+                    idempotency_key: idempotencyKey,
+                }),
             });
 
-            if (questError || !quest) {
-                throw new Error('保存任务失败');
+            const createQuestResult = await createQuestResponse.json().catch(() => null);
+            if (!createQuestResponse.ok || !createQuestResult?.quest?.id) {
+                throw new Error(createQuestResult?.error || '保存任务失败');
             }
 
             // Update resume usage time
@@ -169,11 +190,10 @@ export default function NewQuestPage() {
                 await updateResumeUsage(usedResumeId);
             }
 
-            // Decrement quota after successful save
-            await decrementQuota(user.id);
             await refreshQuota();
+            setCreateIdempotencyKey(null);
 
-            router.push(`/quest/${quest.id}`);
+            router.push(`/quest/${createQuestResult.quest.id}`);
         } catch (error) {
             console.error(error);
             alert('侦察任务启动失败，请重试');
@@ -266,7 +286,10 @@ export default function NewQuestPage() {
                                     className={styles['jd-terminal__textarea']}
                                     placeholder="// 粘贴岗位描述 (JD) 在这里...&#10;// 系统将自动过滤无关内容并提取关键信息&#10;&#10;【职位描述】&#10;..."
                                     value={jdText}
-                                    onChange={(e) => setJdText(e.target.value)}
+                                    onChange={(e) => {
+                                        resetCreateIdempotencyKey();
+                                        setJdText(e.target.value);
+                                    }}
                                 />
                             </div>
                             <div className={styles['jd-terminal__footer']}>
@@ -293,7 +316,10 @@ export default function NewQuestPage() {
                                     className={styles['mission-input__field']}
                                     placeholder="例: 产品经理"
                                     value={targetRole}
-                                    onChange={(e) => setTargetRole(e.target.value)}
+                                    onChange={(e) => {
+                                        resetCreateIdempotencyKey();
+                                        setTargetRole(e.target.value);
+                                    }}
                                 />
                             </div>
                             <div className={styles['mission-input']}>
@@ -303,7 +329,10 @@ export default function NewQuestPage() {
                                     className={styles['mission-input__field']}
                                     placeholder="例: 25k-35k"
                                     value={targetSalary}
-                                    onChange={(e) => setTargetSalary(e.target.value)}
+                                    onChange={(e) => {
+                                        resetCreateIdempotencyKey();
+                                        setTargetSalary(e.target.value);
+                                    }}
                                 />
                             </div>
                         </div>
@@ -328,4 +357,3 @@ export default function NewQuestPage() {
         </div>
     );
 }
-

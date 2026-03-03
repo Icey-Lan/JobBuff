@@ -1,44 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import type { InterviewResponse } from '@/lib/api-types';
+import { createErrorResponse, createSuccessResponse, enforceApiGuard } from '@/lib/api-guards';
 import { generateJSON } from '@/lib/llm';
 import { INTERVIEW_SYSTEM_PROMPT, getInterviewUserPrompt } from '@/lib/prompts';
+import { SchemaValidationError, validateInterviewResponse } from '@/lib/runtime-validators';
 
 export interface InterviewRequest {
     jd_info: string;
-    jd_analysis: object;
+    jd_analysis: unknown;
     user_resume: string;
 }
 
-export interface InterviewResponse {
-    interview_questions: Array<{
-        id: string;
-        type: string;
-        difficulty: string;
-        question: string;
-        jd_relevance: string;
-        reference_answer: {
-            key_points: string[];
-            example_answer: string;
-            common_mistakes: string[];
-        };
-    }>;
-}
-
 export async function POST(request: NextRequest) {
+    const guard = await enforceApiGuard(request, 'llm');
+    if (!guard.ok) {
+        return guard.response;
+    }
+    const { requestId } = guard.context;
+
     try {
         const body: InterviewRequest = await request.json();
 
-        if (!body.jd_info || !body.user_resume) {
-            return NextResponse.json(
-                { error: 'Missing required fields: jd_info and user_resume' },
-                { status: 400 }
-            );
+        if (!body.jd_info?.trim() || !body.user_resume?.trim()) {
+            return createErrorResponse(requestId, 400, 'Missing required fields: jd_info and user_resume');
         }
 
         if (!process.env.LLM_API_KEY) {
-            return NextResponse.json(
-                { error: 'LLM_API_KEY not configured' },
-                { status: 500 }
-            );
+            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
         }
 
         const userPrompt = getInterviewUserPrompt(
@@ -47,14 +35,15 @@ export async function POST(request: NextRequest) {
             body.user_resume
         );
 
-        const result = await generateJSON<InterviewResponse>(INTERVIEW_SYSTEM_PROMPT, userPrompt);
+        const rawResult = await generateJSON<unknown>(INTERVIEW_SYSTEM_PROMPT, userPrompt);
+        const result: InterviewResponse = validateInterviewResponse(rawResult);
 
-        return NextResponse.json(result);
+        return createSuccessResponse(requestId, result);
     } catch (error) {
-        console.error('Error in interview:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error(`[${requestId}] Error in interview:`, error);
+        if (error instanceof SchemaValidationError) {
+            return createErrorResponse(requestId, 502, 'Invalid AI response schema');
+        }
+        return createErrorResponse(requestId, 500, 'Internal server error');
     }
 }

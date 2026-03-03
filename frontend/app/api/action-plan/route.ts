@@ -1,66 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import type { ActionPlanResponse } from '@/lib/api-types';
+import { createErrorResponse, createSuccessResponse, enforceApiGuard } from '@/lib/api-guards';
 import { generateJSON } from '@/lib/llm';
 import { ACTION_PLAN_SYSTEM_PROMPT, getActionPlanUserPrompt } from '@/lib/prompts';
+import { SchemaValidationError, validateActionPlanResponse } from '@/lib/runtime-validators';
 
 export interface ActionPlanRequest {
     jd_info: string;
-    match_analysis: object;
+    match_analysis: unknown;
     user_resume: string;
 }
 
-export interface ActionPlanResponse {
-    strategy: {
-        tier: 'A档' | 'B档' | 'C档' | 'D档';
-        tier_reason: string;
-        effort: string;
-        priority_actions: string[];
-    };
-    channels: Array<{
-        name: string;
-        priority: number;
-        how_to_find: string;
-        success_rate: 'high' | 'medium' | 'low';
-    }>;
-    greetings: {
-        professional: {
-            style: '专业风';
-            target: string;
-            content: string;
-            word_count: number;
-        };
-        passionate: {
-            style: '热情风';
-            target: string;
-            content: string;
-            word_count: number;
-        };
-        concise: {
-            style: '简洁风';
-            target: string;
-            content: string;
-            word_count: number;
-        };
-    };
-}
-
 export async function POST(request: NextRequest) {
+    const guard = await enforceApiGuard(request, 'llm');
+    if (!guard.ok) {
+        return guard.response;
+    }
+    const { requestId } = guard.context;
+
     try {
         const body: ActionPlanRequest = await request.json();
 
-        // Validate required fields
-        if (!body.jd_info || !body.user_resume) {
-            return NextResponse.json(
-                { error: 'Missing required fields: jd_info and user_resume' },
-                { status: 400 }
-            );
+        if (!body.jd_info?.trim() || !body.user_resume?.trim()) {
+            return createErrorResponse(requestId, 400, 'Missing required fields: jd_info and user_resume');
         }
 
-        // Check for API key
         if (!process.env.LLM_API_KEY) {
-            return NextResponse.json(
-                { error: 'LLM_API_KEY not configured' },
-                { status: 500 }
-            );
+            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
         }
 
         const userPrompt = getActionPlanUserPrompt(
@@ -69,14 +35,15 @@ export async function POST(request: NextRequest) {
             body.user_resume
         );
 
-        const result = await generateJSON<ActionPlanResponse>(ACTION_PLAN_SYSTEM_PROMPT, userPrompt);
+        const rawResult = await generateJSON<unknown>(ACTION_PLAN_SYSTEM_PROMPT, userPrompt);
+        const result: ActionPlanResponse = validateActionPlanResponse(rawResult);
 
-        return NextResponse.json(result);
+        return createSuccessResponse(requestId, result);
     } catch (error) {
-        console.error('Error in action-plan:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error(`[${requestId}] Error in action-plan:`, error);
+        if (error instanceof SchemaValidationError) {
+            return createErrorResponse(requestId, 502, 'Invalid AI response schema');
+        }
+        return createErrorResponse(requestId, 500, 'Internal server error');
     }
 }

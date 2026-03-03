@@ -1,58 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import type { ForgeResponse } from '@/lib/api-types';
+import { createErrorResponse, createSuccessResponse, enforceApiGuard } from '@/lib/api-guards';
 import { generateJSON } from '@/lib/llm';
 import { FORGE_SYSTEM_PROMPT, getForgeUserPrompt } from '@/lib/prompts';
+import { SchemaValidationError, validateForgeResponse } from '@/lib/runtime-validators';
 
 export interface ResumeForgeRequest {
     original_resume: string;
     target_jd: string;
-    jd_analysis: object;
-    match_analysis?: object;
+    jd_analysis: unknown;
+    match_analysis?: unknown;
     target_style?: string;
 }
 
-export interface ForgeResponse {
-    forge_summary: {
-        total_changes: number;
-        estimated_match_boost: string;
-        detected_style: string;
-        key_improvements: string[];
-        unmatched_jd_requirements: string[];
-    };
-    changes: Array<{
-        id: string;
-        module: string;
-        location: string;
-        priority: 'P0' | 'P1' | 'P2';
-        title: string;
-        issue: string;
-        before: string;
-        after: string;
-        rationale: string;
-        is_fabrication: boolean;
-        fabrication_warning: string | null;
-        needs_user_confirm: boolean;
-        confirm_note: string | null;
-    }>;
-    forged_resume: object;
-    markdown_export: string;
-}
-
 export async function POST(request: NextRequest) {
+    const guard = await enforceApiGuard(request, 'llm');
+    if (!guard.ok) {
+        return guard.response;
+    }
+    const { requestId } = guard.context;
+
     try {
         const body: ResumeForgeRequest = await request.json();
 
-        if (!body.original_resume || !body.target_jd) {
-            return NextResponse.json(
-                { error: 'Missing required fields: original_resume and target_jd' },
-                { status: 400 }
-            );
+        if (!body.original_resume?.trim() || !body.target_jd?.trim()) {
+            return createErrorResponse(requestId, 400, 'Missing required fields: original_resume and target_jd');
         }
 
         if (!process.env.LLM_API_KEY) {
-            return NextResponse.json(
-                { error: 'LLM_API_KEY not configured' },
-                { status: 500 }
-            );
+            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
         }
 
         const userPrompt = getForgeUserPrompt(
@@ -63,14 +39,15 @@ export async function POST(request: NextRequest) {
             body.target_style || 'auto'
         );
 
-        const result = await generateJSON<ForgeResponse>(FORGE_SYSTEM_PROMPT, userPrompt);
+        const rawResult = await generateJSON<unknown>(FORGE_SYSTEM_PROMPT, userPrompt);
+        const result: ForgeResponse = validateForgeResponse(rawResult);
 
-        return NextResponse.json(result);
+        return createSuccessResponse(requestId, result);
     } catch (error) {
-        console.error('Error in resume-forge:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error(`[${requestId}] Error in resume-forge:`, error);
+        if (error instanceof SchemaValidationError) {
+            return createErrorResponse(requestId, 502, 'Invalid AI response schema');
+        }
+        return createErrorResponse(requestId, 500, 'Internal server error');
     }
 }

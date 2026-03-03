@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import type { FeedbackResponse } from '@/lib/api-types';
+import { createErrorResponse, createSuccessResponse, enforceApiGuard } from '@/lib/api-guards';
 import { generateJSON } from '@/lib/llm';
 import { FEEDBACK_SYSTEM_PROMPT, getFeedbackUserPrompt } from '@/lib/prompts';
+import { SchemaValidationError, validateFeedbackResponse } from '@/lib/runtime-validators';
 
 export interface FeedbackRequest {
     question: string;
@@ -8,32 +11,22 @@ export interface FeedbackRequest {
     user_answer: string;
 }
 
-export interface FeedbackResponse {
-    feedback: {
-        overall_score: 'A (优秀)' | 'B (良好)' | 'C (及格)' | 'D (需改进)';
-        highlights: string[];
-        improvements: string[];
-        suggestions: string[];
-        revised_answer: string | null;
-    };
-}
-
 export async function POST(request: NextRequest) {
+    const guard = await enforceApiGuard(request, 'llm');
+    if (!guard.ok) {
+        return guard.response;
+    }
+    const { requestId } = guard.context;
+
     try {
         const body: FeedbackRequest = await request.json();
 
-        if (!body.question || !body.user_answer) {
-            return NextResponse.json(
-                { error: 'Missing required fields: question and user_answer' },
-                { status: 400 }
-            );
+        if (!body.question?.trim() || !body.user_answer?.trim()) {
+            return createErrorResponse(requestId, 400, 'Missing required fields: question and user_answer');
         }
 
         if (!process.env.LLM_API_KEY) {
-            return NextResponse.json(
-                { error: 'LLM_API_KEY not configured' },
-                { status: 500 }
-            );
+            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
         }
 
         const userPrompt = getFeedbackUserPrompt(
@@ -42,14 +35,15 @@ export async function POST(request: NextRequest) {
             body.user_answer
         );
 
-        const result = await generateJSON<FeedbackResponse>(FEEDBACK_SYSTEM_PROMPT, userPrompt);
+        const rawResult = await generateJSON<unknown>(FEEDBACK_SYSTEM_PROMPT, userPrompt);
+        const result: FeedbackResponse = validateFeedbackResponse(rawResult);
 
-        return NextResponse.json(result);
+        return createSuccessResponse(requestId, result);
     } catch (error) {
-        console.error('Error in interview feedback:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error(`[${requestId}] Error in interview feedback:`, error);
+        if (error instanceof SchemaValidationError) {
+            return createErrorResponse(requestId, 502, 'Invalid AI response schema');
+        }
+        return createErrorResponse(requestId, 500, 'Internal server error');
     }
 }

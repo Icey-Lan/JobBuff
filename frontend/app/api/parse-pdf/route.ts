@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { createErrorResponse, createSuccessResponse, enforceApiGuard } from '@/lib/api-guards';
 
 /**
  * Document Parsing API Route using PP-StructureV3 via AIHubMix
@@ -22,122 +23,163 @@ export interface ParsePdfResponse {
     error?: string;
 }
 
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const OCR_TIMEOUT_MS = 45_000;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export async function POST(request: NextRequest) {
+    const guard = await enforceApiGuard(request, 'ocr');
+    if (!guard.ok) {
+        return guard.response;
+    }
+    const { requestId } = guard.context;
+
     try {
         const body: ParsePdfRequest = await request.json();
 
-        if (!body.file_base64) {
-            return NextResponse.json(
-                { success: false, error: 'Missing file_base64' },
-                { status: 400 }
-            );
+        if (!body.file_base64?.trim()) {
+            return createErrorResponse(requestId, 400, 'Missing file_base64');
+        }
+
+        if (!body.file_name?.trim()) {
+            return createErrorResponse(requestId, 400, 'Missing file_name');
+        }
+
+        const estimatedBytes = Math.floor((body.file_base64.length * 3) / 4);
+        if (estimatedBytes > MAX_FILE_SIZE_BYTES) {
+            return createErrorResponse(requestId, 413, 'File too large');
         }
 
         if (!process.env.LLM_API_KEY) {
-            return NextResponse.json(
-                { success: false, error: 'LLM_API_KEY not configured' },
-                { status: 500 }
-            );
+            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
         }
 
-        // Use the correct OCR endpoint for PP-StructureV3
         const ocrEndpoint = 'https://aihubmix.com/v1/qianfan/ocr';
 
-        // Determine file type from filename
         const fileName = body.file_name.toLowerCase();
         const isPdf = fileName.endsWith('.pdf');
         const isDocx = fileName.endsWith('.docx');
         const isDoc = fileName.endsWith('.doc');
+        const isImage =
+            fileName.endsWith('.png') ||
+            fileName.endsWith('.jpg') ||
+            fileName.endsWith('.jpeg') ||
+            fileName.endsWith('.webp');
         const isWord = isDocx || isDoc;
+
+        if (!isPdf && !isWord && !isImage) {
+            return createErrorResponse(requestId, 415, 'Unsupported file type');
+        }
 
         let mimeType: string;
         let fileType: number;
         if (isPdf) {
             mimeType = 'application/pdf';
-            fileType = 0; // PDF mode
+            fileType = 0;
         } else if (isDocx) {
             mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            fileType = 0; // Document mode
+            fileType = 0;
         } else if (isDoc) {
             mimeType = 'application/msword';
-            fileType = 0; // Document mode
+            fileType = 0;
         } else {
-            mimeType = 'image/png';
-            fileType = 1; // Image mode
+            if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+                mimeType = 'image/jpeg';
+            } else if (fileName.endsWith('.webp')) {
+                mimeType = 'image/webp';
+            } else {
+                mimeType = 'image/png';
+            }
+            fileType = 1;
         }
 
-        // Call PP-StructureV3 via AIHubMix OCR endpoint
-        const response = await fetch(ocrEndpoint, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'pp-structurev3',
-                file: `data:${mimeType};base64,${body.file_base64}`,
-                fileType: fileType,
-                useDocOrientationClassify: false,
-                useDocUnwarping: isWord, // Enable for Word docs to improve parsing
-                useTextlineOrientation: false,
-                useChartRecognition: false,
-            }),
-        });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), OCR_TIMEOUT_MS);
+        let response: Response;
+        try {
+            response = await fetch(ocrEndpoint, {
+                method: 'POST',
+                signal: controller.signal,
+                headers: {
+                    'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: 'pp-structurev3',
+                    file: `data:${mimeType};base64,${body.file_base64}`,
+                    fileType,
+                    useDocOrientationClassify: false,
+                    useDocUnwarping: isWord,
+                    useTextlineOrientation: false,
+                    useChartRecognition: false,
+                }),
+            });
+        } finally {
+            clearTimeout(timeout);
+        }
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('PP-StructureV3 API error:', errorData);
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: errorData.error?.message || errorData.message || `API error: ${response.status}`
-                },
-                { status: response.status }
-            );
+            const errorData = await response.json().catch(() => null);
+            console.error(`[${requestId}] PP-StructureV3 API error:`, response.status, errorData);
+            return createErrorResponse(requestId, 502, 'OCR request failed');
         }
 
-        const data = await response.json();
+        const data: unknown = await response.json();
+        const dataRecord = isRecord(data) ? data : {};
 
-        // PP-StructureV3 returns structured data, extract markdown or text
         let markdown = '';
+        const result = dataRecord.result;
 
-        if (data.result?.markdown) {
-            markdown = data.result.markdown;
-        } else if (data.result?.text) {
-            markdown = data.result.text;
-        } else if (data.markdown) {
-            markdown = data.markdown;
-        } else if (typeof data.result === 'string') {
-            markdown = data.result;
-        } else if (data.results && Array.isArray(data.results)) {
-            // Handle array of results (multi-page)
-            markdown = data.results.map((r: any) => r.markdown || r.text || JSON.stringify(r)).join('\n\n---\n\n');
+        if (isRecord(result) && typeof result.markdown === 'string') {
+            markdown = result.markdown;
+        } else if (isRecord(result) && typeof result.text === 'string') {
+            markdown = result.text;
+        } else if (typeof dataRecord.markdown === 'string') {
+            markdown = dataRecord.markdown;
+        } else if (typeof dataRecord.result === 'string') {
+            markdown = dataRecord.result;
+        } else if (Array.isArray(dataRecord.results)) {
+            markdown = dataRecord.results.map((item) => {
+                if (isRecord(item)) {
+                    if (typeof item.markdown === 'string') return item.markdown;
+                    if (typeof item.text === 'string') return item.text;
+                }
+                return JSON.stringify(item);
+            }).join('\n\n---\n\n');
         } else {
-            // Fallback: stringify the entire response
-            markdown = JSON.stringify(data, null, 2);
+            markdown = JSON.stringify(dataRecord, null, 2);
         }
 
         if (!markdown) {
-            return NextResponse.json(
-                { success: false, error: 'No content returned from parser' },
-                { status: 500 }
-            );
+            return createErrorResponse(requestId, 502, 'No content returned from parser');
         }
 
-        return NextResponse.json({
+        const pageCount =
+            typeof dataRecord.pageCount === 'number'
+                ? dataRecord.pageCount
+                : isRecord(result) && typeof result.pageCount === 'number'
+                    ? result.pageCount
+                    : 1;
+
+        return createSuccessResponse(requestId, {
             success: true,
-            markdown: markdown,
-            page_count: data.pageCount || data.result?.pageCount || 1,
+            markdown,
+            page_count: pageCount,
         });
 
     } catch (error) {
-        console.error('Error in parse-pdf:', error);
-        return NextResponse.json(
-            {
-                success: false,
-                error: error instanceof Error ? error.message : 'Internal server error'
-            },
-            { status: 500 }
-        );
+        console.error(`[${requestId}] Error in parse-pdf:`, error);
+        const isTimeout =
+            error instanceof Error &&
+            (error.name === 'AbortError' || error.message.includes('aborted'));
+
+        if (isTimeout) {
+            return createErrorResponse(requestId, 504, 'OCR request timeout');
+        }
+
+        return createErrorResponse(requestId, 500, 'Internal server error');
     }
 }

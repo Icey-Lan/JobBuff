@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usePDF } from 'react-to-pdf';
 import styles from './page.module.css';
@@ -13,128 +13,36 @@ import { ActionCard, ActionPlanData } from '@/components/features/ActionCard';
 import { SkillRadar } from '@/components/features/SkillRadar';
 import { IconRadar, IconHammer, IconSword, IconSave, IconExport, IconCheck, IconX } from '@/components/icons';
 import { getQuest, updateQuest } from '@/lib/supabase/quests';
-
-// Mock data for demo
-const mockAnalysis = {
-    company: '字节跳动',
-    role: '高级产品经理',
-    salary: '40k-60k',
-    score: 78,
-    dimensions: {
-        skills: 85,
-        experience: 72,
-        education: 90,
-        industry: 65,
-        culture: 80,
-    },
-    coreRequirements: [
-        '3年以上产品经理经验，有 B 端 SaaS 产品经验优先',
-        '熟悉敏捷开发流程，具备跨团队协作能力',
-        '数据驱动思维，能够通过数据分析指导产品决策',
-        '优秀的沟通表达能力和文档撰写能力',
-    ],
-    risks: [
-        { title: '"弹性工作制"', desc: '可能存在高强度加班风险，建议面试时确认具体工作时间' },
-        { title: '"抗压能力强"', desc: '暗示工作节奏快、压力大，需评估自身承受能力' },
-    ],
-    aiSummary: '该岗位整体匹配度良好（78%）。您的技术背景和项目经验与岗位要求高度吻合。建议重点准备 B 端 SaaS 产品案例，并在面试中主动展示数据分析能力。注意：JD 中存在2处风险信号需要关注。',
-};
-
-// Mock diffs for forge stage
-const initialDiffs: DiffItem[] = [
-    {
-        id: 'diff-1',
-        index: 1,
-        section: '个人简介',
-        before: '5年互联网产品经理经验，负责过多个产品从0到1。',
-        after: '5年互联网产品经验，主导 B 端 SaaS 产品从0到1，用户规模突破 10 万。',
-        reason: '补充 B 端 SaaS 经验关键词，增加量化数据',
-        status: 'pending',
-    },
-    {
-        id: 'diff-2',
-        index: 2,
-        section: '工作经历',
-        before: '负责产品规划和需求分析工作。',
-        after: '主导产品规划与需求分析，运用数据驱动决策，DAU 提升 35%。',
-        reason: '植入"数据驱动"关键词，添加具体成果数据',
-        status: 'pending',
-    },
-    {
-        id: 'diff-3',
-        index: 3,
-        section: '项目经历',
-        before: '参与敏捷开发流程，与技术团队紧密合作。',
-        after: '作为 Scrum Master 推行敏捷开发，协调 5 个跨职能团队，迭代周期缩短 40%。',
-        reason: '强化敏捷开发经验，增加团队协作规模和成效数据',
-        status: 'pending',
-    },
-];
-
-// Mock questions for trial stage
-const initialQuestions: InterviewQuestion[] = [
-    {
-        id: 'q-1',
-        index: 1,
-        question: '请介绍一个你从 0 到 1 主导的产品案例？',
-        referenceAnswer: '可以从以下几个维度展开：1) 产品背景和目标用户 2) 核心问题和解决方案 3) 你的具体职责和贡献 4) 最终成果和数据验证 5) 复盘和改进点。建议选择与 B 端 SaaS 相关的案例。',
-    },
-    {
-        id: 'q-2',
-        index: 2,
-        question: '如何用数据驱动产品决策？请举例说明。',
-        referenceAnswer: '回答框架：1) 定义关键指标（北极星指标）2) 数据采集和埋点设计 3) 分析方法（漏斗分析、A/B测试等）4) 如何将分析结论转化为产品决策 5) 决策后的效果验证。',
-    },
-    {
-        id: 'q-3',
-        index: 3,
-        question: '面对需求变更频繁的情况，你会如何处理？',
-        referenceAnswer: '关键点：1) 建立需求优先级评估框架（价值/成本矩阵）2) 与干系人对齐预期 3) 敏捷迭代小步快跑 4) 做好变更记录和影响评估 5) 保持团队沟通透明度。',
-    },
-    {
-        id: 'q-4',
-        index: 4,
-        question: '你如何看待"弹性工作制"？',
-        referenceAnswer: '这是一道考察价值观契合度的题目。可以表达：1) 理解业务需要灵活性 2) 关注工作效率而非工时 3) 适当询问公司的弹性工作实践 4) 表达对工作生活平衡的合理期望。',
-    },
-    {
-        id: 'q-5',
-        index: 5,
-        question: '你有什么问题想问我们的？',
-        referenceAnswer: '建议提问：1) 团队的产品方法论和文化 2) 这个岗位的核心挑战是什么 3) 对新人的期望和成长路径 4) 产品的技术架构和迭代节奏。避免过早询问薪资福利。',
-    },
-];
-
-// Mock action plan for demo
-const mockActionPlan: ActionPlanData = {
-    strategy: {
-        tier: 'A 档 (重点)',
-        tierReason: '匹配度 > 80%，核心技能 (SaaS, 数据驱动) 完全吻合，且风险可控。',
-        effort: '建议投入 3-5 天深度准备，优先寻找内推渠道。',
-    },
-    greetings: {
-        professional: {
-            style: '专业风',
-            target: 'HR',
-            content: '您好，我有5年B端产品经验，主导过亿级SaaS产品从0到1，擅长数据驱动决策（DAU提升35%）。看到贵司在招高级PM，觉得非常匹配，希望能有交流机会。',
-            word_count: 50
-        },
-        passionate: {
-            style: '热情风',
-            target: 'HR',
-            content: 'HR您的眼光真好！我是[产品名称]的忠实用户，一直关注贵司在SaaS领域的创新。我有5年相关经验，希望能加入团队一起搞事情！',
-            word_count: 40
-        },
-        concise: {
-            style: '简洁风',
-            target: 'HR',
-            content: '5年B端产品经验 | 主导过亿级SaaS项目 | 数据驱动增长专家 | 求撩~',
-            word_count: 30
-        }
-    }
-};
+import type { ActionPlanResponse, FeedbackResponse, ForgeResponse, IntelResponse, InterviewResponse } from '@/lib/api-types';
+import {
+    buildResumePreview,
+    extractApiErrorMessage,
+    mapActionPlanToCardData,
+    mapForgeChangesToDiffs,
+    mapIntelToAnalysis,
+    mapInterviewQuestionsToCards,
+    QuestForge,
+    QuestTrial,
+    SavedUserAnswers,
+    stripForgePreviewDecorations,
+    type IntelAnalysis,
+} from './quest-mappers';
 
 type Stage = 'intel' | 'forge' | 'trial';
+
+interface QuestPageData {
+    id: string;
+    inputs: {
+        jd_text: string;
+        resume_text: string;
+        target_position?: string | null;
+        target_salary?: string | null;
+    };
+    intel?: IntelResponse;
+    forge?: QuestForge;
+    trial?: QuestTrial;
+    diffStatus?: Record<string, string>;
+}
 
 export default function QuestDetailPage() {
     const params = useParams();
@@ -147,10 +55,10 @@ export default function QuestDetailPage() {
 
     // Data Loading State
     const [loading, setLoading] = useState(true);
-    const [questData, setQuestData] = useState<any>(null);
+    const [questData, setQuestData] = useState<QuestPageData | null>(null);
 
     // Analysis Data (from Intel)
-    const [analysis, setAnalysis] = useState<any>(null); // Replace mockAnalysis
+    const [analysis, setAnalysis] = useState<IntelAnalysis | null>(null);
 
     // Forge state
     const [diffs, setDiffs] = useState<DiffItem[]>([]);
@@ -171,6 +79,17 @@ export default function QuestDetailPage() {
         page: { margin: 20 }
     });
 
+    const fetchJsonOrThrow = async <T,>(input: RequestInfo | URL, init: RequestInit, fallbackError: string): Promise<T> => {
+        const response = await fetch(input, init);
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok) {
+            throw new Error(extractApiErrorMessage(payload, fallbackError));
+        }
+
+        return payload as T;
+    };
+
     // Load Data on Mount
     React.useEffect(() => {
         const loadQuestData = async () => {
@@ -183,7 +102,7 @@ export default function QuestDetailPage() {
             }
 
             // Transform Supabase data to local format
-            const data = {
+            const data: QuestPageData = {
                 id: quest.id,
                 inputs: {
                     jd_text: quest.jdText,
@@ -191,70 +110,28 @@ export default function QuestDetailPage() {
                     target_position: quest.targetPosition,
                     target_salary: quest.targetSalary,
                 },
-                intel: quest.intel,
-                forge: quest.forge,
-                trial: quest.trial,
-                diffStatus: quest.diffStatus,
+                intel: (quest.intel ?? undefined) as IntelResponse | undefined,
+                forge: (quest.forge ?? undefined) as QuestForge | undefined,
+                trial: (quest.trial ?? undefined) as QuestTrial | undefined,
+                diffStatus: (quest.diffStatus ?? undefined) as Record<string, string> | undefined,
             };
             setQuestData(data);
 
             // Setup Intel Data
             if (data.intel) {
-                // Transform API response to UI State - include ALL fields
-                const intel = data.intel;
-                const uiAnalysis = {
-                    company: intel.jd_insight?.role_reality?.team_inference || '未知公司',
-                    role: intel.jd_insight?.role_reality?.title || '未知岗位',
-                    salary: intel.jd_insight?.salary_analysis?.range || '未知',
-                    score: intel.match_analysis?.overall_score || 0,
-                    dimensions: intel.match_analysis?.radar_chart || { skills: 0, experience: 0, education: 0, industry: 0, fit: 0 },
-                    coreRequirements: intel.jd_insight?.requirements?.must_have || [],
-                    niceToHave: intel.jd_insight?.requirements?.nice_to_have || [],
-                    hiddenRequirements: intel.jd_insight?.requirements?.hidden || [],
-                    risks: intel.jd_insight?.risk_assessment?.red_flags?.map((r: any) => ({ title: r.signal, desc: r.meaning, evidence: r.evidence })) || [],
-                    yellowFlags: intel.jd_insight?.risk_assessment?.yellow_flags?.map((r: any) => ({ title: r.signal, desc: r.meaning })) || [],
-                    overallRisk: intel.jd_insight?.risk_assessment?.overall_risk || 'unknown',
-                    dailyWork: intel.jd_insight?.role_reality?.daily_work || [],
-                    hiddenDuties: intel.jd_insight?.role_reality?.hidden_duties || [],
-                    swot: intel.match_analysis?.swot || { strengths: [], weaknesses: [], opportunities: [], threats: [] },
-                    gapAnalysis: intel.match_analysis?.gap_analysis || [],
-                    aiSummary: intel.verdict?.one_line_summary || '暂无总结',
-                    recommendation: intel.verdict?.recommendation || '待评估',
-                    keyPoints: intel.verdict?.key_points || [],
-                    cultureInference: intel.jd_insight?.company_intel?.culture_inference || null,
-                    growthStage: intel.jd_insight?.company_intel?.growth_stage || 'unknown',
-                    salaryVsTarget: intel.jd_insight?.salary_analysis?.vs_target || 'unknown',
-                };
-                setAnalysis(uiAnalysis);
+                setAnalysis(mapIntelToAnalysis(data.intel));
             }
 
             // Restore other stages if they exist
             if (data.forge) {
                 setCompletedStages(prev => Array.from(new Set([...prev, 'intel'])));
-                // Restore Forge Data
-                const forgeResult = data.forge;
                 const savedStatus = data.diffStatus || {};
-                const restoredDiffs = forgeResult.changes.map((c: any, idx: number) => {
-                    const id = c.id || `diff-${idx}`;
-                    return {
-                        id,
-                        index: idx + 1,
-                        section: c.module,
-                        title: c.title,
-                        issue: c.issue,
-                        before: c.before,
-                        after: c.after,
-                        reason: c.rationale,
-                        status: savedStatus[id] || 'pending',
-                        priority: c.priority,
-                        isFabrication: c.is_fabrication,
-                        fabricationWarning: c.fabrication_warning,
-                        needsUserConfirm: c.needs_user_confirm,
-                        confirmNote: c.confirm_note,
-                    };
-                });
+                const restoredDiffs = mapForgeChangesToDiffs(data.forge.changes, savedStatus);
                 setDiffs(restoredDiffs);
-                setResumePreview(forgeResult.markdown_export);
+                const basePreview = data.forge.customPreview || data.forge.markdown_export;
+                if (basePreview) {
+                    setResumePreview(buildResumePreview(basePreview, restoredDiffs));
+                }
             }
 
             if (data.trial) {
@@ -262,48 +139,16 @@ export default function QuestDetailPage() {
 
                 // Restore Action Plan
                 if (data.trial.actionPlan) {
-                    const storedPlan = data.trial.actionPlan;
-                    setActionPlan({
-                        strategy: {
-                            tier: storedPlan.strategy?.tier,
-                            tierReason: storedPlan.strategy?.tier_reason || storedPlan.strategy?.tierReason,
-                            effort: storedPlan.strategy?.effort,
-                            priorityActions: storedPlan.strategy?.priorityActions || storedPlan.strategy?.priority_actions,
-                        },
-                        channels: storedPlan.channels?.map((c: any) => ({
-                            name: c.name,
-                            priority: c.priority,
-                            howToFind: c.howToFind || c.how_to_find,
-                            successRate: c.successRate || c.success_rate
-                        })),
-                        greetings: storedPlan.greetings
-                    });
+                    const mappedPlan = mapActionPlanToCardData(data.trial.actionPlan);
+                    if (mappedPlan) {
+                        setActionPlan(mappedPlan);
+                    }
                 }
 
                 // Restore Questions
-                const questionsData = data.trial.questions?.interview_questions || data.trial.questions || [];
                 const savedUserAnswers = data.trial.userAnswers || {};
-                if (Array.isArray(questionsData)) {
-                    const restoredQuestions = questionsData.map((q: any, idx: number) => {
-                        const qId = q.id || `q-${idx}`;
-                        const savedAnswer = savedUserAnswers[qId];
-                        return {
-                            id: qId,
-                            index: idx + 1,
-                            question: q.question,
-                            type: q.type,
-                            difficulty: q.difficulty,
-                            jdRelevance: q.jd_relevance || q.jdRelevance,
-                            commonMistakes: q.reference_answer?.common_mistakes || q.commonMistakes || [],
-                            referenceAnswer: q.reference_answer?.example_answer || q.reference_answer?.key_points?.join('; ') || q.referenceAnswer || '暂无参考',
-                            keyPoints: q.reference_answer?.key_points || q.keyPoints || [],
-                            // Restore saved user answer and feedback
-                            userAnswer: savedAnswer?.userAnswer,
-                            feedback: savedAnswer?.feedback,
-                        };
-                    });
-                    setQuestions(restoredQuestions);
-                }
+                const restoredQuestions = mapInterviewQuestionsToCards(data.trial.questions, savedUserAnswers);
+                setQuestions(restoredQuestions);
             }
             setLoading(false);
         };
@@ -320,9 +165,13 @@ export default function QuestDetailPage() {
 
             // Check if we need to call Forge API
             if (questData && !questData.forge && !isForging) {
+                if (!questData.intel) {
+                    alert('缺少情报数据，无法执行锻造');
+                    return;
+                }
                 setIsForging(true);
                 try {
-                    const res = await fetch('/api/resume-forge', {
+                    const forgeResult = await fetchJsonOrThrow<ForgeResponse>('/api/resume-forge', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -331,37 +180,21 @@ export default function QuestDetailPage() {
                             jd_analysis: questData.intel.jd_insight,
                             match_analysis: questData.intel.match_analysis
                         })
-                    });
-                    const forgeResult = await res.json();
+                    }, '锻造失败，请重试');
 
                     // Update Quest Data in Supabase
                     await updateQuest(questId, { forge: forgeResult });
                     const newQuestData = { ...questData, forge: forgeResult };
                     setQuestData(newQuestData);
 
-                    // Map Diffs with all fields
-                    const newDiffs = forgeResult.changes.map((c: any, idx: number) => ({
-                        id: c.id || `diff-${idx}`,
-                        index: idx + 1,
-                        section: c.module,
-                        title: c.title,
-                        issue: c.issue,
-                        before: c.before,
-                        after: c.after,
-                        reason: c.rationale,
-                        status: 'pending',
-                        priority: c.priority,
-                        isFabrication: c.is_fabrication,
-                        fabricationWarning: c.fabrication_warning,
-                        needsUserConfirm: c.needs_user_confirm,
-                        confirmNote: c.confirm_note,
-                    }));
+                    const newDiffs = mapForgeChangesToDiffs(forgeResult.changes);
                     setDiffs(newDiffs);
-                    setResumePreview(forgeResult.markdown_export);
+                    setResumePreview(buildResumePreview(forgeResult.markdown_export, newDiffs));
 
                 } catch (e) {
                     console.error(e);
-                    alert('锻造失败，请重试');
+                    const message = e instanceof Error ? e.message : '锻造失败，请重试';
+                    alert(message);
                 } finally {
                     setIsForging(false);
                 }
@@ -371,27 +204,10 @@ export default function QuestDetailPage() {
                 const forgeResult = questData.forge;
                 if (diffs.length === 0) {
                     const savedStatus = questData.diffStatus || {};
-                    const newDiffs = forgeResult.changes.map((c: any, idx: number) => {
-                        const id = c.id || `diff-${idx}`;
-                        return {
-                            id,
-                            index: idx + 1,
-                            section: c.module,
-                            title: c.title,
-                            issue: c.issue,
-                            before: c.before,
-                            after: c.after,
-                            reason: c.rationale,
-                            status: savedStatus[id] || 'pending',
-                            priority: c.priority,
-                            isFabrication: c.is_fabrication,
-                            fabricationWarning: c.fabrication_warning,
-                            needsUserConfirm: c.needs_user_confirm,
-                            confirmNote: c.confirm_note,
-                        };
-                    });
+                    const newDiffs = mapForgeChangesToDiffs(forgeResult.changes, savedStatus);
                     setDiffs(newDiffs);
-                    setResumePreview(forgeResult.markdown_export);
+                    const basePreview = forgeResult.customPreview || forgeResult.markdown_export;
+                    setResumePreview(buildResumePreview(basePreview, newDiffs));
                 }
             }
 
@@ -401,10 +217,14 @@ export default function QuestDetailPage() {
 
             // Check if we need to call Trial APIs
             if (questData && !questData.trial && !isTrialLoading) {
+                if (!questData.intel) {
+                    alert('缺少情报数据，无法生成试炼');
+                    return;
+                }
                 setIsTrialLoading(true);
                 try {
                     // Call Action Plan
-                    const actionRes = await fetch('/api/action-plan', {
+                    const actionResult = await fetchJsonOrThrow<ActionPlanResponse>('/api/action-plan', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -412,28 +232,14 @@ export default function QuestDetailPage() {
                             match_analysis: questData.intel.match_analysis,
                             user_resume: questData.inputs.resume_text // Use original or forged? Original for generic strategy.
                         })
-                    });
-                    const actionResult = await actionRes.json();
-                    // Map snake_case API response to camelCase for ActionCard component
-                    const mappedActionPlan = {
-                        strategy: {
-                            tier: actionResult.strategy?.tier,
-                            tierReason: actionResult.strategy?.tier_reason,
-                            effort: actionResult.strategy?.effort,
-                            priorityActions: actionResult.strategy?.priority_actions,
-                        },
-                        channels: actionResult.channels?.map((c: any) => ({
-                            name: c.name,
-                            priority: c.priority,
-                            howToFind: c.how_to_find,
-                            successRate: c.success_rate
-                        })),
-                        greetings: actionResult.greetings
-                    };
-                    setActionPlan(mappedActionPlan);
+                    }, '行动策略生成失败');
+                    const mappedActionPlan = mapActionPlanToCardData(actionResult);
+                    if (mappedActionPlan) {
+                        setActionPlan(mappedActionPlan);
+                    }
 
                     // Call Interview
-                    const interviewRes = await fetch('/api/interview', {
+                    const interviewResult = await fetchJsonOrThrow<InterviewResponse>('/api/interview', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -441,33 +247,20 @@ export default function QuestDetailPage() {
                             jd_analysis: questData.intel.jd_insight,
                             user_resume: questData.inputs.resume_text
                         })
-                    });
-                    const interviewResult = await interviewRes.json();
-
-                    if (interviewResult.interview_questions) {
-                        const newQuestions = interviewResult.interview_questions.map((q: any, idx: number) => ({
-                            id: q.id || `q-${idx}`,
-                            index: idx + 1,
-                            question: q.question,
-                            type: q.type,
-                            difficulty: q.difficulty,
-                            jdRelevance: q.jd_relevance,
-                            commonMistakes: q.reference_answer?.common_mistakes || [],
-                            referenceAnswer: q.reference_answer?.example_answer || q.reference_answer?.key_points?.join('; ') || '暂无参考',
-                            keyPoints: q.reference_answer?.key_points || []
-                        }));
-                        setQuestions(newQuestions);
-                    }
+                    }, '面试题生成失败');
+                    const newQuestions = mapInterviewQuestionsToCards(interviewResult);
+                    setQuestions(newQuestions);
 
                     // Save Trial Data to Supabase
-                    const trialData = { actionPlan: actionResult, questions: interviewResult };
+                    const trialData: QuestTrial = { actionPlan: actionResult, questions: interviewResult };
                     await updateQuest(questId, { trial: trialData });
                     const newQuestData = { ...questData, trial: trialData };
                     setQuestData(newQuestData);
 
                 } catch (e) {
                     console.error(e);
-                    alert('试炼生成失败');
+                    const message = e instanceof Error ? e.message : '试炼生成失败';
+                    alert(message);
                 } finally {
                     setIsTrialLoading(false);
                 }
@@ -475,35 +268,13 @@ export default function QuestDetailPage() {
                 // Restore Trial State - map snake_case to camelCase
                 const storedPlan = questData.trial.actionPlan;
                 if (storedPlan) {
-                    const mappedPlan = {
-                        strategy: {
-                            tier: storedPlan.strategy?.tier,
-                            tierReason: storedPlan.strategy?.tier_reason || storedPlan.strategy?.tierReason,
-                            effort: storedPlan.strategy?.effort,
-                            priorityActions: storedPlan.strategy?.priorityActions || storedPlan.strategy?.priority_actions,
-                        },
-                        channels: storedPlan.channels?.map((c: any) => ({
-                            name: c.name,
-                            priority: c.priority,
-                            howToFind: c.howToFind || c.how_to_find,
-                            successRate: c.successRate || c.success_rate
-                        })),
-                        greetings: storedPlan.greetings
-                    };
-                    setActionPlan(mappedPlan);
+                    const mappedPlan = mapActionPlanToCardData(storedPlan);
+                    if (mappedPlan) {
+                        setActionPlan(mappedPlan);
+                    }
                 }
-                if (questions.length === 0 && questData.trial.questions?.interview_questions) {
-                    const newQuestions = questData.trial.questions.interview_questions.map((q: any, idx: number) => ({
-                        id: q.id || `q-${idx}`,
-                        index: idx + 1,
-                        question: q.question,
-                        type: q.type,
-                        difficulty: q.difficulty,
-                        jdRelevance: q.jd_relevance || q.jdRelevance,
-                        commonMistakes: q.reference_answer?.common_mistakes || q.commonMistakes || [],
-                        referenceAnswer: q.reference_answer?.example_answer || q.reference_answer?.key_points?.join('; ') || '暂无参考',
-                        keyPoints: q.reference_answer?.key_points || []
-                    }));
+                if (questions.length === 0 && questData.trial.questions) {
+                    const newQuestions = mapInterviewQuestionsToCards(questData.trial.questions, questData.trial.userAnswers || {});
                     setQuestions(newQuestions);
                 }
             }
@@ -521,10 +292,14 @@ export default function QuestDetailPage() {
 
     const handleRegenerateForge = async () => {
         if (!confirm('重新锻造将覆盖当前的修改记录，确定要继续吗？')) return;
+        if (!questData || !questData.intel) {
+            alert('缺少任务数据，无法重铸');
+            return;
+        }
 
         setIsForging(true);
         try {
-            const res = await fetch('/api/resume-forge', {
+            const forgeResult = await fetchJsonOrThrow<ForgeResponse>('/api/resume-forge', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -534,37 +309,28 @@ export default function QuestDetailPage() {
                     match_analysis: questData.intel.match_analysis,
                     target_style: targetStyle
                 })
-            });
-            const forgeResult = await res.json();
+            }, '重铸失败，请重试');
+
+            const preservedMeta = Object.entries(questData.diffStatus || {}).reduce((acc, [key, value]) => {
+                if (key.startsWith('__')) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {} as Record<string, string>);
 
             // Update Quest Data in Supabase
-            await updateQuest(questId, { forge: forgeResult, diffStatus: {} });
-            const newQuestData = { ...questData, forge: forgeResult, diffStatus: {} };
+            await updateQuest(questId, { forge: forgeResult, diffStatus: preservedMeta });
+            const newQuestData = { ...questData, forge: forgeResult, diffStatus: preservedMeta };
             setQuestData(newQuestData);
 
-            // Map Diffs with all fields
-            const newDiffs = forgeResult.changes.map((c: any, idx: number) => ({
-                id: c.id || `diff-${idx}`,
-                index: idx + 1,
-                section: c.module,
-                title: c.title,
-                issue: c.issue,
-                before: c.before,
-                after: c.after,
-                reason: c.rationale,
-                status: 'pending',
-                priority: c.priority,
-                isFabrication: c.is_fabrication,
-                fabricationWarning: c.fabrication_warning,
-                needsUserConfirm: c.needs_user_confirm,
-                confirmNote: c.confirm_note,
-            }));
+            const newDiffs = mapForgeChangesToDiffs(forgeResult.changes);
             setDiffs(newDiffs);
-            setResumePreview(forgeResult.markdown_export);
+            setResumePreview(buildResumePreview(forgeResult.markdown_export, newDiffs));
 
         } catch (e) {
             console.error(e);
-            alert('重铸失败，请重试');
+            const message = e instanceof Error ? e.message : '重铸失败，请重试';
+            alert(message);
         } finally {
             setIsForging(false);
         }
@@ -573,121 +339,28 @@ export default function QuestDetailPage() {
     // Forge handlers - with Supabase persistence + preview update
     const saveDiffStatus = async (updatedDiffs: DiffItem[]) => {
         if (questData) {
+            const preservedMeta = Object.entries(questData.diffStatus || {}).reduce((acc, [key, value]) => {
+                if (key.startsWith('__')) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {} as Record<string, string>);
+
             const statusMap = updatedDiffs.reduce((acc, d) => {
                 acc[d.id] = d.status;
                 return acc;
-            }, {} as Record<string, DiffStatus>);
+            }, preservedMeta as Record<string, string>);
             await updateQuest(questId, { diffStatus: statusMap });
+            setQuestData({ ...questData, diffStatus: statusMap });
         }
     };
 
     // Update preview based on accepted/rejected changes
-    const updatePreview = (updatedDiffs: DiffItem[]) => {
+    const updatePreview = (updatedDiffs: DiffItem[], explicitBase?: string) => {
         if (!questData?.forge?.markdown_export) return;
 
-        const markdownExport = questData.forge.customPreview || questData.forge.markdown_export;
-
-        // Count statuses
-        const acceptedCount = updatedDiffs.filter(d => d.status === 'accepted').length;
-        const rejectedCount = updatedDiffs.filter(d => d.status === 'rejected').length;
-        const pendingCount = updatedDiffs.filter(d => d.status === 'pending').length;
-
-        // If no rejected changes, show markdown_export as-is (it's the optimized version)
-        if (rejectedCount === 0) {
-            const statusLine = `【锻造状态】已接受: ${acceptedCount} | 已拒绝: ${rejectedCount} | 待定: ${pendingCount}\n${'─'.repeat(40)}\n\n`;
-            setResumePreview(statusLine + markdownExport);
-            return;
-        }
-
-        // Helper: strip Markdown formatting for fuzzy comparison
-        const stripMarkdown = (s: string) => s
-            .replace(/^[-*+]\s+/gm, '')       // Remove list bullets (-, *, +)
-            .replace(/^#{1,6}\s+/gm, '')       // Remove headers (# ## ###)
-            .replace(/\*\*(.*?)\*\*/g, '$1')   // Remove bold **text**
-            .replace(/\*(.*?)\*/g, '$1')        // Remove italic *text*
-            .replace(/`(.*?)`/g, '$1')          // Remove inline code `text`
-            .replace(/\s+/g, ' ')              // Collapse whitespace
-            .trim();
-
-        // Helper: try to replace text in Markdown with awareness of formatting
-        const markdownFuzzyReplace = (text: string, search: string, replacement: string): { result: string; matched: boolean } => {
-            // 1. Try exact match
-            if (text.includes(search)) {
-                return { result: text.replace(search, replacement), matched: true };
-            }
-
-            // 2. Try trimmed match
-            const trimmedSearch = search.trim();
-            if (trimmedSearch && text.includes(trimmedSearch)) {
-                return { result: text.replace(trimmedSearch, replacement.trim()), matched: true };
-            }
-
-            // 3. Try line-by-line Markdown-stripped matching
-            const strippedSearch = stripMarkdown(search);
-            if (!strippedSearch || strippedSearch.length < 10) {
-                return { result: text, matched: false };
-            }
-
-            const lines = text.split('\n');
-            for (let i = 0; i < lines.length; i++) {
-                const strippedLine = stripMarkdown(lines[i]);
-                if (strippedLine.includes(strippedSearch)) {
-                    // Preserve the Markdown prefix (e.g., "- ", "### ") and replace the content
-                    const mdPrefix = lines[i].match(/^(\s*[-*+]\s+|\s*#{1,6}\s+|\s*)/)?.[0] || '';
-                    lines[i] = mdPrefix + replacement.trim();
-                    return { result: lines.join('\n'), matched: true };
-                }
-            }
-
-            // 4. Try multi-line: search content might span across lines
-            const strippedFull = stripMarkdown(text);
-            if (strippedFull.includes(strippedSearch)) {
-                // Find approximate position and replace in original
-                // Use a sliding window on original lines
-                for (let i = 0; i < lines.length; i++) {
-                    for (let j = i; j < Math.min(i + 3, lines.length); j++) {
-                        const chunk = lines.slice(i, j + 1).join('\n');
-                        if (stripMarkdown(chunk).includes(strippedSearch)) {
-                            const mdPrefix = lines[i].match(/^(\s*[-*+]\s+|\s*#{1,6}\s+|\s*)/)?.[0] || '';
-                            lines.splice(i, j - i + 1, mdPrefix + replacement.trim());
-                            return { result: lines.join('\n'), matched: true };
-                        }
-                    }
-                }
-            }
-
-            return { result: text, matched: false };
-        };
-
-        // Start from markdown_export (always well-formatted Markdown)
-        // Revert REJECTED changes: replace after → before
-        let newPreview = markdownExport;
-        const unmatchedChanges: { title: string; before: string }[] = [];
-
-        updatedDiffs.forEach(diff => {
-            if (diff.status === 'rejected' && diff.before && diff.after) {
-                const { result, matched } = markdownFuzzyReplace(newPreview, diff.after, diff.before);
-                if (matched) {
-                    newPreview = result;
-                } else {
-                    unmatchedChanges.push({ title: diff.title || diff.section, before: diff.before });
-                }
-            }
-        });
-
-        // Build status header
-        const statusLine = `【锻造状态】已接受: ${acceptedCount} | 已拒绝: ${rejectedCount} | 待定: ${pendingCount}\n${'─'.repeat(40)}\n\n`;
-
-        // Append unmatched rejected changes as annotations
-        let annotations = '';
-        if (unmatchedChanges.length > 0) {
-            annotations = `\n\n${'─'.repeat(40)}\n📝 以下拒绝的修改因格式差异无法自动还原，原文如下：\n`;
-            unmatchedChanges.forEach(c => {
-                annotations += `\n▸「${c.title}」应保留原文：\n  ${c.before}\n`;
-            });
-        }
-
-        setResumePreview(statusLine + newPreview + annotations);
+        const basePreview = explicitBase || questData.forge.customPreview || questData.forge.markdown_export;
+        setResumePreview(buildResumePreview(basePreview, updatedDiffs));
     };
 
     const handleAcceptDiff = (id: string) => {
@@ -718,7 +391,7 @@ export default function QuestDetailPage() {
 
         // Call Feedback API
         try {
-            const res = await fetch('/api/interview/feedback', {
+            const data = await fetchJsonOrThrow<FeedbackResponse>('/api/interview/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -726,8 +399,7 @@ export default function QuestDetailPage() {
                     key_points: q.keyPoints || [],
                     user_answer: answer
                 })
-            });
-            const data = await res.json();
+            }, '点评失败');
             const fb = data.feedback;
 
             const feedbackData: { content: string; rating: 'good' | 'average' | 'poor' } = {
@@ -756,7 +428,7 @@ export default function QuestDetailPage() {
                         };
                     }
                     return acc;
-                }, {} as Record<string, { userAnswer?: string; feedback?: any }>);
+                }, {} as SavedUserAnswers);
 
                 await updateQuest(questId, {
                     trial: { ...questData.trial, userAnswers }
@@ -765,7 +437,8 @@ export default function QuestDetailPage() {
             }
         } catch (e) {
             console.error(e);
-            alert('点评失败');
+            const message = e instanceof Error ? e.message : '点评失败';
+            alert(message);
         }
     };
 
@@ -773,7 +446,8 @@ export default function QuestDetailPage() {
     const pendingCount = diffs.filter(d => d.status === 'pending').length;
 
     if (loading) return <div style={{ padding: 40 }}>Loading Quest Data...</div>;
-    if (!analysis && !loading) return <div style={{ padding: 40 }}>Quest Not Found (Local Storage)</div>;
+    if (!analysis) return <div style={{ padding: 40 }}>Quest Not Found (Local Storage)</div>;
+    const analysisData = analysis;
 
     return (
         <div className={styles['quest-detail']}>
@@ -781,10 +455,10 @@ export default function QuestDetailPage() {
             <div className={styles['quest-header']}>
                 <div className={styles['quest-header__info']}>
                     <span className={styles['quest-header__company']}>
-                        {analysis.company} · {analysis.role}
+                        {analysisData.company} · {analysisData.role}
                     </span>
                     <span className={styles['quest-header__role']}>
-                        {analysis.salary} · 任务ID: {questId}
+                        {analysisData.salary} · 任务ID: {questId}
                     </span>
                 </div>
                 <div className={styles['quest-header__actions']}>
@@ -841,19 +515,19 @@ export default function QuestDetailPage() {
                             {/* Score Panel */}
                             <PixelCard shadow="md">
                                 <div className={styles['score-panel']}>
-                                    <div className={styles['score-value']}>{analysis.score}%</div>
+                                    <div className={styles['score-value']}>{analysisData.score}%</div>
                                     <div className={styles['score-label']}>战力评分</div>
-                                    <div style={{ marginTop: 8, fontSize: '0.85rem', color: analysis.recommendation === '推荐投递' ? 'var(--color-loot-green)' : analysis.recommendation === '不建议投递' ? 'var(--color-trap-red)' : 'var(--color-buff-orange)' }}>
-                                        {analysis.recommendation}
+                                    <div style={{ marginTop: 8, fontSize: '0.85rem', color: analysisData.recommendation === '推荐投递' ? 'var(--color-loot-green)' : analysisData.recommendation === '不建议投递' ? 'var(--color-trap-red)' : 'var(--color-buff-orange)' }}>
+                                        {analysisData.recommendation}
                                     </div>
                                 </div>
                                 <div className={styles['radar-chart']}>
-                                    <SkillRadar dimensions={analysis.dimensions || { skills: 0, experience: 0, education: 0, industry: 0, fit: 0 }} />
+                                    <SkillRadar dimensions={analysisData.dimensions || { skills: 0, experience: 0, education: 0, industry: 0, fit: 0 }} />
                                 </div>
                             </PixelCard>
 
                             {/* SWOT Analysis */}
-                            {analysis.swot && (
+                            {analysisData.swot && (
                                 <div style={{ marginTop: 16 }}>
                                     <PixelCard shadow="sm">
                                         <div className={styles['brief-section__title']}>📊 SWOT 分析</div>
@@ -861,25 +535,25 @@ export default function QuestDetailPage() {
                                             <div style={{ padding: 8, background: 'rgba(0,200,100,0.1)' }}>
                                                 <strong>优势 S</strong>
                                                 <ul style={{ margin: 0, paddingLeft: 16 }}>
-                                                    {analysis.swot.strengths?.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                                                    {analysisData.swot.strengths?.map((s: string, i: number) => <li key={i}>{s}</li>)}
                                                 </ul>
                                             </div>
                                             <div style={{ padding: 8, background: 'rgba(255,100,0,0.1)' }}>
                                                 <strong>劣势 W</strong>
                                                 <ul style={{ margin: 0, paddingLeft: 16 }}>
-                                                    {analysis.swot.weaknesses?.map((w: string, i: number) => <li key={i}>{w}</li>)}
+                                                    {analysisData.swot.weaknesses?.map((w: string, i: number) => <li key={i}>{w}</li>)}
                                                 </ul>
                                             </div>
                                             <div style={{ padding: 8, background: 'rgba(0,150,255,0.1)' }}>
                                                 <strong>机会 O</strong>
                                                 <ul style={{ margin: 0, paddingLeft: 16 }}>
-                                                    {analysis.swot.opportunities?.map((o: string, i: number) => <li key={i}>{o}</li>)}
+                                                    {analysisData.swot.opportunities?.map((o: string, i: number) => <li key={i}>{o}</li>)}
                                                 </ul>
                                             </div>
                                             <div style={{ padding: 8, background: 'rgba(150,0,150,0.1)' }}>
                                                 <strong>威胁 T</strong>
                                                 <ul style={{ margin: 0, paddingLeft: 16 }}>
-                                                    {analysis.swot.threats?.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                                                    {analysisData.swot.threats?.map((t: string, i: number) => <li key={i}>{t}</li>)}
                                                 </ul>
                                             </div>
                                         </div>
@@ -890,8 +564,8 @@ export default function QuestDetailPage() {
 
                         <div className={styles['brief-panel']}>
                             {/* Risk Warnings */}
-                            {analysis.risks && analysis.risks.length > 0 ? (
-                                analysis.risks.map((risk: any, i: number) => (
+                            {analysisData.risks && analysisData.risks.length > 0 ? (
+                                analysisData.risks.map((risk, i: number) => (
                                     <GlitchCard key={i} severity="warning" title={risk.title}>
                                         {risk.desc}
                                         {risk.evidence && <div style={{ fontSize: '0.75rem', marginTop: 4, opacity: 0.7 }}>证据: {risk.evidence}</div>}
@@ -902,11 +576,11 @@ export default function QuestDetailPage() {
                             )}
 
                             {/* Daily Work */}
-                            {analysis.dailyWork && analysis.dailyWork.length > 0 && (
+                            {analysisData.dailyWork && analysisData.dailyWork.length > 0 && (
                                 <div className={styles['brief-section']}>
                                     <div className={styles['brief-section__title']}>📋 日常工作内容</div>
                                     <ul className={styles['brief-section__list']}>
-                                        {analysis.dailyWork.map((work: string, i: number) => (
+                                        {analysisData.dailyWork.map((work: string, i: number) => (
                                             <li key={i} className={styles['brief-section__item']}>{work}</li>
                                         ))}
                                     </ul>
@@ -917,18 +591,18 @@ export default function QuestDetailPage() {
                             <div className={styles['brief-section']}>
                                 <div className={styles['brief-section__title']}>🎯 核心能力要求</div>
                                 <ul className={styles['brief-section__list']}>
-                                    {analysis.coreRequirements?.map((req: string, i: number) => (
+                                    {analysisData.coreRequirements?.map((req: string, i: number) => (
                                         <li key={i} className={styles['brief-section__item']}>{req}</li>
                                     ))}
                                 </ul>
                             </div>
 
                             {/* Hidden Requirements */}
-                            {analysis.hiddenRequirements && analysis.hiddenRequirements.length > 0 && (
+                            {analysisData.hiddenRequirements && analysisData.hiddenRequirements.length > 0 && (
                                 <div className={styles['brief-section']} style={{ background: 'rgba(255,200,0,0.1)' }}>
                                     <div className={styles['brief-section__title']}>⚠️ 隐藏要求</div>
                                     <ul className={styles['brief-section__list']}>
-                                        {analysis.hiddenRequirements.map((req: string, i: number) => (
+                                        {analysisData.hiddenRequirements.map((req: string, i: number) => (
                                             <li key={i} className={styles['brief-section__item']}>{req}</li>
                                         ))}
                                     </ul>
@@ -936,11 +610,11 @@ export default function QuestDetailPage() {
                             )}
 
                             {/* Gap Analysis */}
-                            {analysis.gapAnalysis && analysis.gapAnalysis.length > 0 && (
+                            {analysisData.gapAnalysis && analysisData.gapAnalysis.length > 0 && (
                                 <div className={styles['brief-section']}>
                                     <div className={styles['brief-section__title']}>📊 能力差距分析</div>
                                     <div style={{ fontSize: '0.85rem' }}>
-                                        {analysis.gapAnalysis.map((gap: any, i: number) => (
+                                        {analysisData.gapAnalysis.map((gap, i: number) => (
                                             <div key={i} style={{ padding: 8, marginBottom: 8, background: gap.resume_status === 'matched' ? 'rgba(0,200,100,0.1)' : gap.resume_status === 'partial' ? 'rgba(255,200,0,0.1)' : 'rgba(255,0,0,0.1)' }}>
                                                 <strong>{gap.jd_requirement}</strong>
                                                 <span style={{ marginLeft: 8, fontSize: '0.75rem' }}>
@@ -954,11 +628,11 @@ export default function QuestDetailPage() {
                             )}
 
                             {/* Key Points */}
-                            {analysis.keyPoints && analysis.keyPoints.length > 0 && (
+                            {analysisData.keyPoints && analysisData.keyPoints.length > 0 && (
                                 <div className={styles['brief-section']} style={{ background: 'var(--color-buff-orange)', color: 'white' }}>
                                     <div className={styles['brief-section__title']} style={{ color: 'white' }}>💡 核心观点</div>
                                     <ul className={styles['brief-section__list']}>
-                                        {analysis.keyPoints.map((point: string, i: number) => (
+                                        {analysisData.keyPoints.map((point: string, i: number) => (
                                             <li key={i} className={styles['brief-section__item']} style={{ color: 'white' }}>{point}</li>
                                         ))}
                                     </ul>
@@ -968,7 +642,7 @@ export default function QuestDetailPage() {
                             {/* AI Summary */}
                             <div className={styles['ai-summary']}>
                                 <span className={styles['ai-summary__label']}>AI 参谋总结</span>
-                                {analysis.aiSummary}
+                                {analysisData.aiSummary}
                             </div>
                         </div>
                     </div>
@@ -1109,10 +783,15 @@ export default function QuestDetailPage() {
                                                                     setResumePreview(editedPreview);
                                                                     setIsEditingPreview(false);
                                                                     // Save to Supabase
-                                                                    if (questData) {
+                                                                    if (questData?.forge) {
+                                                                        const updatedForge = {
+                                                                            ...questData.forge,
+                                                                            customPreview: editedPreview,
+                                                                        };
                                                                         await updateQuest(questId, {
-                                                                            forge: { ...questData.forge, customPreview: editedPreview }
+                                                                            forge: updatedForge,
                                                                         });
+                                                                        setQuestData({ ...questData, forge: updatedForge });
                                                                     }
                                                                 }}
                                                             >
@@ -1131,7 +810,7 @@ export default function QuestDetailPage() {
                                                         variant="ghost"
                                                         size="small"
                                                         onClick={() => {
-                                                            navigator.clipboard.writeText(resumePreview);
+                                                            navigator.clipboard.writeText(stripForgePreviewDecorations(resumePreview));
                                                             alert('已复制到剪贴板！');
                                                         }}
                                                     >

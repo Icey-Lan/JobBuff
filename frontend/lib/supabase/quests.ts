@@ -1,4 +1,19 @@
 import { createClient } from '@/lib/supabase/client';
+import type { PostgrestError } from '@supabase/supabase-js';
+import type { ForgeResponse, IntelResponse } from '@/lib/api-types';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+type QuestError = PostgrestError | Error | null;
+type QuestStatus = 'intel' | 'forge' | 'trial' | 'completed' | 'archived';
+
+interface TrialData {
+    actionPlan?: unknown;
+    questions?: unknown;
+    userAnswers?: Record<string, { userAnswer?: string; feedback?: unknown }>;
+}
 
 export interface QuestInput {
     userId: string;
@@ -6,7 +21,7 @@ export interface QuestInput {
     resumeText: string;
     targetPosition?: string;
     targetSalary?: string;
-    intel?: any;
+    intel?: IntelResponse;
 }
 
 export interface QuestData {
@@ -16,36 +31,44 @@ export interface QuestData {
     resumeText: string;
     targetPosition?: string;
     targetSalary?: string;
-    intel?: any;
-    forge?: any;
-    trial?: any;
+    intel?: IntelResponse;
+    forge?: (ForgeResponse & { customPreview?: string }) | null;
+    trial?: TrialData | null;
     diffStatus?: Record<string, string>;
-    status: 'intel' | 'forge' | 'trial' | 'completed' | 'archived';
+    status: QuestStatus;
     createdAt: string;
     updatedAt: string;
 }
 
 // Transform snake_case DB columns to camelCase
-function transformQuest(row: any): QuestData {
+function transformQuest(row: Record<string, unknown>): QuestData {
+    const rawDiffStatus = isRecord(row.diff_status) ? row.diff_status : {};
+    const diffStatus = Object.entries(rawDiffStatus).reduce((acc, [key, value]) => {
+        if (typeof value === 'string') {
+            acc[key] = value;
+        }
+        return acc;
+    }, {} as Record<string, string>);
+
     return {
-        id: row.id,
-        userId: row.user_id,
-        jdText: row.jd_text,
-        resumeText: row.resume_text,
-        targetPosition: row.target_position,
-        targetSalary: row.target_salary,
-        intel: row.intel,
-        forge: row.forge,
-        trial: row.trial,
-        diffStatus: row.diff_status,
-        status: row.status,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        id: String(row.id),
+        userId: String(row.user_id),
+        jdText: String(row.jd_text),
+        resumeText: String(row.resume_text),
+        targetPosition: typeof row.target_position === 'string' ? row.target_position : undefined,
+        targetSalary: typeof row.target_salary === 'string' ? row.target_salary : undefined,
+        intel: (row.intel as IntelResponse | null) ?? undefined,
+        forge: (row.forge as QuestData['forge']) ?? undefined,
+        trial: (row.trial as TrialData | null) ?? undefined,
+        diffStatus: Object.keys(diffStatus).length > 0 ? diffStatus : undefined,
+        status: row.status as QuestStatus,
+        createdAt: String(row.created_at),
+        updatedAt: String(row.updated_at),
     };
 }
 
 // Create a new quest
-export async function createQuest(input: QuestInput): Promise<{ data: QuestData | null; error: any }> {
+export async function createQuest(input: QuestInput): Promise<{ data: QuestData | null; error: QuestError }> {
     const supabase = createClient();
 
     const { data, error } = await supabase
@@ -63,13 +86,13 @@ export async function createQuest(input: QuestInput): Promise<{ data: QuestData 
         .single();
 
     return {
-        data: data ? transformQuest(data) : null,
+        data: data && isRecord(data) ? transformQuest(data) : null,
         error,
     };
 }
 
 // Get a quest by ID
-export async function getQuest(questId: string): Promise<{ data: QuestData | null; error: any }> {
+export async function getQuest(questId: string): Promise<{ data: QuestData | null; error: QuestError }> {
     const supabase = createClient();
 
     const { data, error } = await supabase
@@ -79,7 +102,7 @@ export async function getQuest(questId: string): Promise<{ data: QuestData | nul
         .single();
 
     return {
-        data: data ? transformQuest(data) : null,
+        data: data && isRecord(data) ? transformQuest(data) : null,
         error,
     };
 }
@@ -88,16 +111,16 @@ export async function getQuest(questId: string): Promise<{ data: QuestData | nul
 export async function updateQuest(
     questId: string,
     updates: Partial<{
-        intel: any;
-        forge: any;
-        trial: any;
+        intel: IntelResponse;
+        forge: QuestData['forge'];
+        trial: QuestData['trial'];
         diffStatus: Record<string, string>;
-        status: string;
+        status: QuestStatus;
     }>
-): Promise<{ error: any }> {
+): Promise<{ error: QuestError }> {
     const supabase = createClient();
 
-    const dbUpdates: any = {
+    const dbUpdates: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
     };
 
@@ -116,7 +139,7 @@ export async function updateQuest(
 }
 
 // Get all quests for a user
-export async function getUserQuests(userId: string): Promise<{ data: QuestData[]; error: any }> {
+export async function getUserQuests(userId: string): Promise<{ data: QuestData[]; error: QuestError }> {
     const supabase = createClient();
 
     const { data, error } = await supabase
@@ -126,13 +149,13 @@ export async function getUserQuests(userId: string): Promise<{ data: QuestData[]
         .order('created_at', { ascending: false });
 
     return {
-        data: data ? data.map(transformQuest) : [],
+        data: data ? data.filter(isRecord).map(transformQuest) : [],
         error,
     };
 }
 
 // Delete a quest
-export async function deleteQuest(questId: string): Promise<{ error: any }> {
+export async function deleteQuest(questId: string): Promise<{ error: QuestError }> {
     const supabase = createClient();
 
     const { error } = await supabase
@@ -144,7 +167,7 @@ export async function deleteQuest(questId: string): Promise<{ error: any }> {
 }
 
 // Decrement user quota (call after successful quest creation)
-export async function decrementQuota(userId: string): Promise<{ error: any }> {
+export async function decrementQuota(userId: string): Promise<{ error: QuestError }> {
     const supabase = createClient();
 
     const { error } = await supabase.rpc('increment', {
@@ -160,11 +183,12 @@ export async function decrementQuota(userId: string): Promise<{ error: any }> {
             .eq('id', userId)
             .single();
 
-        if (quota) {
-            return await supabase
+        if (quota && typeof quota.used_quota === 'number') {
+            const { error: fallbackError } = await supabase
                 .from('user_quotas')
                 .update({ used_quota: quota.used_quota + 1 })
                 .eq('id', userId);
+            return { error: fallbackError };
         }
     }
 

@@ -1,4 +1,11 @@
 import { createClient } from '@/lib/supabase/client';
+import type { PostgrestError } from '@supabase/supabase-js';
+
+type ResumeError = PostgrestError | Error | null;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 // ==========================================================================
 // Resume Material Library - CRUD Functions
@@ -25,22 +32,22 @@ export interface ResumeInput {
 }
 
 // Transform snake_case DB columns to camelCase
-function transformResume(row: any): ResumeData {
+function transformResume(row: Record<string, unknown>): ResumeData {
     return {
-        id: row.id,
-        userId: row.user_id,
-        fileName: row.file_name,
-        fileType: row.file_type,
-        content: row.content,
-        fileSize: row.file_size,
-        lastUsedAt: row.last_used_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        id: String(row.id),
+        userId: String(row.user_id),
+        fileName: String(row.file_name),
+        fileType: String(row.file_type),
+        content: String(row.content),
+        fileSize: typeof row.file_size === 'number' ? row.file_size : null,
+        lastUsedAt: typeof row.last_used_at === 'string' ? row.last_used_at : null,
+        createdAt: String(row.created_at),
+        updatedAt: String(row.updated_at),
     };
 }
 
 // Get all resumes for a user, sorted by last used (most recent first)
-export async function getUserResumes(userId: string): Promise<{ data: ResumeData[]; error: any }> {
+export async function getUserResumes(userId: string): Promise<{ data: ResumeData[]; error: ResumeError }> {
     const supabase = createClient();
 
     const { data, error } = await supabase
@@ -51,13 +58,13 @@ export async function getUserResumes(userId: string): Promise<{ data: ResumeData
         .order('created_at', { ascending: false });
 
     return {
-        data: data ? data.map(transformResume) : [],
+        data: data ? data.filter(isRecord).map(transformResume) : [],
         error,
     };
 }
 
 // Get a single resume by ID
-export async function getResumeById(resumeId: string): Promise<{ data: ResumeData | null; error: any }> {
+export async function getResumeById(resumeId: string): Promise<{ data: ResumeData | null; error: ResumeError }> {
     const supabase = createClient();
 
     const { data, error } = await supabase
@@ -67,13 +74,13 @@ export async function getResumeById(resumeId: string): Promise<{ data: ResumeDat
         .single();
 
     return {
-        data: data ? transformResume(data) : null,
+        data: data && isRecord(data) ? transformResume(data) : null,
         error,
     };
 }
 
 // Create a new resume
-export async function createResume(input: ResumeInput): Promise<{ data: ResumeData | null; error: any }> {
+export async function createResume(input: ResumeInput): Promise<{ data: ResumeData | null; error: ResumeError }> {
     const supabase = createClient();
 
     const { data, error } = await supabase
@@ -90,13 +97,13 @@ export async function createResume(input: ResumeInput): Promise<{ data: ResumeDa
         .single();
 
     return {
-        data: data ? transformResume(data) : null,
+        data: data && isRecord(data) ? transformResume(data) : null,
         error,
     };
 }
 
 // Update last_used_at timestamp when a resume is used
-export async function updateResumeUsage(resumeId: string): Promise<{ error: any }> {
+export async function updateResumeUsage(resumeId: string): Promise<{ error: ResumeError }> {
     const supabase = createClient();
 
     const { error } = await supabase
@@ -111,7 +118,7 @@ export async function updateResumeUsage(resumeId: string): Promise<{ error: any 
 }
 
 // Delete a resume
-export async function deleteResume(resumeId: string): Promise<{ error: any }> {
+export async function deleteResume(resumeId: string): Promise<{ error: ResumeError }> {
     const supabase = createClient();
 
     const { error } = await supabase

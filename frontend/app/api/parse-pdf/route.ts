@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * PDF Parsing API Route using PP-StructureV3 via AIHubMix
+ * Document Parsing API Route using PP-StructureV3 via AIHubMix
+ * Supports: PDF, DOCX, DOC, and image files
  * 
  * Official API endpoint: https://aihubmix.com/v1/qianfan/ocr
  * Required params:
@@ -43,8 +44,27 @@ export async function POST(request: NextRequest) {
         const ocrEndpoint = 'https://aihubmix.com/v1/qianfan/ocr';
 
         // Determine file type from filename
-        const isPdf = body.file_name.toLowerCase().endsWith('.pdf');
-        const mimeType = isPdf ? 'application/pdf' : 'image/png';
+        const fileName = body.file_name.toLowerCase();
+        const isPdf = fileName.endsWith('.pdf');
+        const isDocx = fileName.endsWith('.docx');
+        const isDoc = fileName.endsWith('.doc');
+        const isWord = isDocx || isDoc;
+
+        let mimeType: string;
+        let fileType: number;
+        if (isPdf) {
+            mimeType = 'application/pdf';
+            fileType = 0; // PDF mode
+        } else if (isDocx) {
+            mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            fileType = 0; // Document mode
+        } else if (isDoc) {
+            mimeType = 'application/msword';
+            fileType = 0; // Document mode
+        } else {
+            mimeType = 'image/png';
+            fileType = 1; // Image mode
+        }
 
         // Call PP-StructureV3 via AIHubMix OCR endpoint
         const response = await fetch(ocrEndpoint, {
@@ -56,9 +76,9 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({
                 model: 'pp-structurev3',
                 file: `data:${mimeType};base64,${body.file_base64}`,
-                fileType: isPdf ? 0 : 1, // 0 = PDF, 1 = image
+                fileType: fileType,
                 useDocOrientationClassify: false,
-                useDocUnwarping: false,
+                useDocUnwarping: isWord, // Enable for Word docs to improve parsing
                 useTextlineOrientation: false,
                 useChartRecognition: false,
             }),

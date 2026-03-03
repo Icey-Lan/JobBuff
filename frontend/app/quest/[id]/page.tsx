@@ -585,29 +585,109 @@ export default function QuestDetailPage() {
     const updatePreview = (updatedDiffs: DiffItem[]) => {
         if (!questData?.forge?.markdown_export) return;
 
-        // Always start with markdown_export (proper Markdown format)
-        // NOT resume_text which may be a JSON object from PDF parsing
-        const basePreview = questData.forge.customPreview || questData.forge.markdown_export;
-        let newPreview = basePreview;
+        const markdownExport = questData.forge.customPreview || questData.forge.markdown_export;
 
-        // Apply accepted changes to preview
-        updatedDiffs.forEach(diff => {
-            if (diff.status === 'accepted' && diff.before && diff.after) {
-                // Replace original text with the improved version
-                newPreview = newPreview.replace(diff.before, diff.after);
-            }
-            // For rejected changes, keep the original (don't replace)
-        });
-
-        // Build a summary at the top
+        // Count statuses
         const acceptedCount = updatedDiffs.filter(d => d.status === 'accepted').length;
         const rejectedCount = updatedDiffs.filter(d => d.status === 'rejected').length;
         const pendingCount = updatedDiffs.filter(d => d.status === 'pending').length;
 
+        // If no rejected changes, show markdown_export as-is (it's the optimized version)
+        if (rejectedCount === 0) {
+            const statusLine = `【锻造状态】已接受: ${acceptedCount} | 已拒绝: ${rejectedCount} | 待定: ${pendingCount}\n${'─'.repeat(40)}\n\n`;
+            setResumePreview(statusLine + markdownExport);
+            return;
+        }
+
+        // Helper: strip Markdown formatting for fuzzy comparison
+        const stripMarkdown = (s: string) => s
+            .replace(/^[-*+]\s+/gm, '')       // Remove list bullets (-, *, +)
+            .replace(/^#{1,6}\s+/gm, '')       // Remove headers (# ## ###)
+            .replace(/\*\*(.*?)\*\*/g, '$1')   // Remove bold **text**
+            .replace(/\*(.*?)\*/g, '$1')        // Remove italic *text*
+            .replace(/`(.*?)`/g, '$1')          // Remove inline code `text`
+            .replace(/\s+/g, ' ')              // Collapse whitespace
+            .trim();
+
+        // Helper: try to replace text in Markdown with awareness of formatting
+        const markdownFuzzyReplace = (text: string, search: string, replacement: string): { result: string; matched: boolean } => {
+            // 1. Try exact match
+            if (text.includes(search)) {
+                return { result: text.replace(search, replacement), matched: true };
+            }
+
+            // 2. Try trimmed match
+            const trimmedSearch = search.trim();
+            if (trimmedSearch && text.includes(trimmedSearch)) {
+                return { result: text.replace(trimmedSearch, replacement.trim()), matched: true };
+            }
+
+            // 3. Try line-by-line Markdown-stripped matching
+            const strippedSearch = stripMarkdown(search);
+            if (!strippedSearch || strippedSearch.length < 10) {
+                return { result: text, matched: false };
+            }
+
+            const lines = text.split('\n');
+            for (let i = 0; i < lines.length; i++) {
+                const strippedLine = stripMarkdown(lines[i]);
+                if (strippedLine.includes(strippedSearch)) {
+                    // Preserve the Markdown prefix (e.g., "- ", "### ") and replace the content
+                    const mdPrefix = lines[i].match(/^(\s*[-*+]\s+|\s*#{1,6}\s+|\s*)/)?.[0] || '';
+                    lines[i] = mdPrefix + replacement.trim();
+                    return { result: lines.join('\n'), matched: true };
+                }
+            }
+
+            // 4. Try multi-line: search content might span across lines
+            const strippedFull = stripMarkdown(text);
+            if (strippedFull.includes(strippedSearch)) {
+                // Find approximate position and replace in original
+                // Use a sliding window on original lines
+                for (let i = 0; i < lines.length; i++) {
+                    for (let j = i; j < Math.min(i + 3, lines.length); j++) {
+                        const chunk = lines.slice(i, j + 1).join('\n');
+                        if (stripMarkdown(chunk).includes(strippedSearch)) {
+                            const mdPrefix = lines[i].match(/^(\s*[-*+]\s+|\s*#{1,6}\s+|\s*)/)?.[0] || '';
+                            lines.splice(i, j - i + 1, mdPrefix + replacement.trim());
+                            return { result: lines.join('\n'), matched: true };
+                        }
+                    }
+                }
+            }
+
+            return { result: text, matched: false };
+        };
+
+        // Start from markdown_export (always well-formatted Markdown)
+        // Revert REJECTED changes: replace after → before
+        let newPreview = markdownExport;
+        const unmatchedChanges: { title: string; before: string }[] = [];
+
+        updatedDiffs.forEach(diff => {
+            if (diff.status === 'rejected' && diff.before && diff.after) {
+                const { result, matched } = markdownFuzzyReplace(newPreview, diff.after, diff.before);
+                if (matched) {
+                    newPreview = result;
+                } else {
+                    unmatchedChanges.push({ title: diff.title || diff.section, before: diff.before });
+                }
+            }
+        });
+
+        // Build status header
         const statusLine = `【锻造状态】已接受: ${acceptedCount} | 已拒绝: ${rejectedCount} | 待定: ${pendingCount}\n${'─'.repeat(40)}\n\n`;
 
-        // Use the modified preview with accepted changes applied
-        setResumePreview(statusLine + newPreview);
+        // Append unmatched rejected changes as annotations
+        let annotations = '';
+        if (unmatchedChanges.length > 0) {
+            annotations = `\n\n${'─'.repeat(40)}\n📝 以下拒绝的修改因格式差异无法自动还原，原文如下：\n`;
+            unmatchedChanges.forEach(c => {
+                annotations += `\n▸「${c.title}」应保留原文：\n  ${c.before}\n`;
+            });
+        }
+
+        setResumePreview(statusLine + newPreview + annotations);
     };
 
     const handleAcceptDiff = (id: string) => {

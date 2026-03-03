@@ -200,3 +200,12 @@
 .dropdown__upload:hover {
     background: rgba(255, 149, 0, 0.1);
 }
+
+/* Format Hint */
+.dropdown__hint {
+    padding: var(--space-xs) var(--space-md) var(--space-sm);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    line-height: 1.4;
+}

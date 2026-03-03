@@ -5,6 +5,12 @@ import styles from './ResumeLibrary.module.css';
 import { IconFile, IconUpload, IconTrash, IconChevronDown } from '@/components/icons';
 import { getUserResumes, deleteResume, ResumeData } from '@/lib/supabase/resumes';
 
+// Supported file formats
+const SUPPORTED_FORMATS = ['.pdf', '.docx', '.doc', '.md', '.txt'];
+const SUPPORTED_FORMATS_DISPLAY = 'PDF、Word (.doc/.docx)、Markdown (.md)、TXT';
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 interface ResumeLibraryProps {
     userId: string;
     onSelect: (resume: ResumeData | null) => void;
@@ -81,7 +87,25 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files && files.length > 0) {
-            onNewUpload(files[0]);
+            const file = files[0];
+            const fileName = file.name.toLowerCase();
+            const ext = '.' + (fileName.split('.').pop() || '');
+
+            // Validate file format
+            if (!SUPPORTED_FORMATS.includes(ext)) {
+                alert(`❌ 不支持的文件格式「${ext}」\n\n支持的格式：${SUPPORTED_FORMATS_DISPLAY}\n\n提示：如果你的文件是 .doc 格式，建议先用 Word 另存为 .docx 格式后再上传。`);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                return;
+            }
+
+            // Validate file size
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                alert(`❌ 文件大小超出限制\n\n当前文件：${(file.size / 1024 / 1024).toFixed(1)}MB\n上限：${MAX_FILE_SIZE_MB}MB`);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                return;
+            }
+
+            onNewUpload(file);
             setIsOpen(false);
         }
         // Reset input
@@ -128,7 +152,7 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
             <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.docx,.doc,.md"
+                accept=".pdf,.docx,.doc,.md,.txt"
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
             />
@@ -205,6 +229,11 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
                         <IconUpload size={16} />
                         <span>上传新简历</span>
                     </button>
+
+                    {/* Format Hint */}
+                    <div className={styles.dropdown__hint}>
+                        📎 支持 {SUPPORTED_FORMATS_DISPLAY}，上限 {MAX_FILE_SIZE_MB}MB
+                    </div>
                 </div>
             )}
         </div>

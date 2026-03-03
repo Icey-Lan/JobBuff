@@ -74,9 +74,10 @@ export default function NewQuestPage() {
                 usedResumeId = selectedResume.id;
             } else if (newResumeFile) {
                 // Parse new uploaded file
-                if (newResumeFile.name.endsWith('.md') || newResumeFile.name.endsWith('.txt')) {
+                const fileName = newResumeFile.name.toLowerCase();
+                if (fileName.endsWith('.md') || fileName.endsWith('.txt')) {
                     resumeText = await newResumeFile.text();
-                } else {
+                } else if (fileName.endsWith('.pdf') || fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
                     // PDF/Word files: use PP-StructureV3 API
                     const arrayBuffer = await newResumeFile.arrayBuffer();
                     const base64 = btoa(
@@ -106,6 +107,8 @@ export default function NewQuestPage() {
                     }
 
                     resumeText = parseResult.markdown;
+                } else {
+                    throw new Error(`不支持的文件格式。请上传 PDF、Word (.doc/.docx)、Markdown 或 TXT 格式的简历。`);
                 }
 
                 // Save new resume to library

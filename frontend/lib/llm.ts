@@ -22,7 +22,7 @@ export async function generateJSON<T>(
             { role: 'user', content: `${userPrompt}\n\n请以严格的 JSON 格式输出，不要包含任何 markdown 代码块标记。` },
         ],
         temperature: 0.4,
-        max_tokens: 8192,
+        max_tokens: 16384,
     });
 
     const text = response.choices[0]?.message?.content || '';

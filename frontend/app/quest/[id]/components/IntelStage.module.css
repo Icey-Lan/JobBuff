@@ -1,0 +1,105 @@
+.intel-scan {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+@media (max-width: 900px) {
+    .intel-scan {
+        grid-template-columns: 1fr;
+    }
+}
+
+.score-panel {
+    text-align: center;
+    padding: var(--space-xl);
+}
+
+.score-value {
+    font-family: var(--font-mono);
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--color-buff-orange);
+    line-height: 1;
+    margin-bottom: var(--space-sm);
+}
+
+.score-label {
+    font-size: 0.875rem;
+    color: var(--color-pixel-gray-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.radar-chart {
+    width: 100%;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-paper-canvas);
+    border: var(--border-default);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-pixel-gray-dark);
+}
+
+.brief-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.brief-section {
+    padding: var(--space-md);
+    background-color: var(--color-paper-canvas);
+    border: var(--border-default);
+}
+
+.brief-section__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin-bottom: var(--space-md);
+}
+
+.brief-section__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.brief-section__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.brief-section__item::before {
+    content: '▸';
+    color: var(--color-buff-orange);
+    flex-shrink: 0;
+}
+
+.ai-summary {
+    padding: var(--space-lg);
+    background-color: var(--color-ink-black);
+    color: var(--color-loot-green);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    border: var(--border-default);
+}
+
+.ai-summary__label {
+    color: var(--color-buff-orange);
+    margin-bottom: var(--space-sm);
+    display: block;
+}

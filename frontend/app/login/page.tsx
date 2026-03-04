@@ -81,7 +81,7 @@ function LoginForm() {
                     window.location.href = redirectTo === '/login' ? '/' : redirectTo;
                 }
             }
-        } catch (err) {
+        } catch {
             setMessage({ type: 'error', text: '发生未知错误，请重试' });
             setLoading(false);
         }

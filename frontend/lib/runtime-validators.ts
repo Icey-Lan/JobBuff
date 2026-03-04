@@ -83,6 +83,107 @@ function expectEnum<T extends string>(
     return value as T;
 }
 
+function pickField(record: JsonRecord, keys: string[]): unknown {
+    for (const key of keys) {
+        const value = record[key];
+        if (value !== undefined && value !== null) {
+            return value;
+        }
+    }
+    return undefined;
+}
+
+function expectNumberLike(value: unknown, path: string): number {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+        const parsed = Number(value.trim());
+        if (Number.isFinite(parsed)) {
+            return parsed;
+        }
+    }
+
+    throw new SchemaValidationError(`${path} must be a finite number`);
+}
+
+function normalizeActionTier(value: unknown, path: string): ActionPlanResponse['strategy']['tier'] {
+    const raw = expectString(value, path);
+    const compact = raw
+        .replace(/\s+/g, '')
+        .replace(/Ａ/g, 'A')
+        .replace(/Ｂ/g, 'B')
+        .replace(/Ｃ/g, 'C')
+        .replace(/Ｄ/g, 'D')
+        .toUpperCase();
+
+    if (compact.startsWith('A') || raw.includes('重点')) {
+        return 'A档';
+    }
+    if (compact.startsWith('B') || raw.includes('常规')) {
+        return 'B档';
+    }
+    if (compact.startsWith('C') || raw.includes('保底')) {
+        return 'C档';
+    }
+    if (compact.startsWith('D') || raw.includes('放弃') || raw.includes('不投')) {
+        return 'D档';
+    }
+
+    throw new SchemaValidationError(`${path} must be one of: A档, B档, C档, D档`);
+}
+
+function normalizeSuccessRate(value: unknown): ActionPlanResponse['channels'][number]['success_rate'] {
+    if (typeof value !== 'string' || !value.trim()) {
+        return 'medium';
+    }
+
+    const lower = value.toLowerCase();
+    if (lower.includes('high') || value.includes('高')) {
+        return 'high';
+    }
+    if (lower.includes('medium') || lower.includes('mid') || value.includes('中')) {
+        return 'medium';
+    }
+    if (lower.includes('low') || value.includes('低')) {
+        return 'low';
+    }
+
+    return 'medium';
+}
+
+function normalizePriorityActions(value: unknown): string[] {
+    if (Array.isArray(value)) {
+        return value
+            .filter((item): item is string => typeof item === 'string')
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+        return value
+            .split(/\n|；|;|。|\|/)
+            .map((item) => item.replace(/^(?:[-*•]|\d+[.)、])\s*/, '').trim())
+            .filter(Boolean);
+    }
+
+    return [];
+}
+
+function normalizeWordCount(value: unknown, content: string, path: string): number {
+    if (value === undefined || value === null || value === '') {
+        return content.length;
+    }
+
+    try {
+        const parsed = expectNumberLike(value, path);
+        return Math.max(0, Math.round(parsed));
+    } catch {
+        return content.length;
+    }
+}
+
 function parseRiskFlags(value: unknown, path: string): Array<{ signal: string; evidence: string; meaning: string }> {
     const array = expectArray(value, path);
     return array.map((item, index) => {
@@ -231,53 +332,127 @@ export function validateForgeResponse(value: unknown): ForgeResponse {
 }
 
 export function validateActionPlanResponse(value: unknown): ActionPlanResponse {
-    const root = expectRecord(value, 'root');
+    const outer = expectRecord(value, 'root');
+    const nested = [outer.action_plan, outer.data, outer.result].find((item) => {
+        if (!isRecord(item)) {
+            return false;
+        }
+        return item.strategy !== undefined || item.channels !== undefined || item.greetings !== undefined;
+    });
+    const root = isRecord(nested) ? nested : outer;
+
     const strategy = expectRecord(root.strategy, 'strategy');
-    const channels = expectArray(root.channels, 'channels');
-    const greetings = expectRecord(root.greetings, 'greetings');
+    const strategyTier = normalizeActionTier(pickField(strategy, ['tier', 'grade', 'level']), 'strategy.tier');
+    const strategyReason = expectString(
+        pickField(strategy, ['tier_reason', 'tierReason', 'reason']),
+        'strategy.tier_reason'
+    );
+    const strategyEffort = expectString(
+        pickField(strategy, ['effort', 'time_cost', 'timeCost']),
+        'strategy.effort'
+    );
+    const strategyActions = normalizePriorityActions(
+        pickField(strategy, ['priority_actions', 'priorityActions', 'actions'])
+    );
+
+    const rawChannels = Array.isArray(root.channels) ? root.channels : [];
+    const channels = rawChannels.flatMap((item, index) => {
+        if (!isRecord(item)) {
+            return [];
+        }
+
+        const name = expectString(pickField(item, ['name', 'channel']), `channels[${index}].name`);
+        const howToFind = expectString(
+            pickField(item, ['how_to_find', 'howToFind', 'instruction']),
+            `channels[${index}].how_to_find`
+        );
+
+        const priorityValue = pickField(item, ['priority', 'rank']);
+        const priority =
+            priorityValue === undefined || priorityValue === null
+                ? index + 1
+                : Math.max(1, Math.round(expectNumberLike(priorityValue, `channels[${index}].priority`)));
+
+        return [{
+            name,
+            priority,
+            how_to_find: howToFind,
+            success_rate: normalizeSuccessRate(pickField(item, ['success_rate', 'successRate', 'rate'])),
+        }];
+    });
+
+    const greetingsSource = isRecord(root.greetings) ? root.greetings : root;
+    const greetings = expectRecord(greetingsSource, 'greetings');
 
     const professional = expectRecord(greetings.professional, 'greetings.professional');
     const passionate = expectRecord(greetings.passionate, 'greetings.passionate');
     const concise = expectRecord(greetings.concise, 'greetings.concise');
 
+    const professionalTarget = expectString(
+        pickField(professional, ['target', 'audience']),
+        'greetings.professional.target'
+    );
+    const professionalContent = expectString(
+        pickField(professional, ['content', 'message', 'text']),
+        'greetings.professional.content'
+    );
+
+    const passionateTarget = expectString(
+        pickField(passionate, ['target', 'audience']),
+        'greetings.passionate.target'
+    );
+    const passionateContent = expectString(
+        pickField(passionate, ['content', 'message', 'text']),
+        'greetings.passionate.content'
+    );
+
+    const conciseTarget = expectString(
+        pickField(concise, ['target', 'audience']),
+        'greetings.concise.target'
+    );
+    const conciseContent = expectString(
+        pickField(concise, ['content', 'message', 'text']),
+        'greetings.concise.content'
+    );
+
     return {
         strategy: {
-            tier: expectEnum(strategy.tier, ['A档', 'B档', 'C档', 'D档'] as const, 'strategy.tier'),
-            tier_reason: expectString(strategy.tier_reason, 'strategy.tier_reason'),
-            effort: expectString(strategy.effort, 'strategy.effort'),
-            priority_actions: expectStringArray(strategy.priority_actions, 'strategy.priority_actions'),
+            tier: strategyTier,
+            tier_reason: strategyReason,
+            effort: strategyEffort,
+            priority_actions: strategyActions,
         },
-        channels: channels.map((item, index) => {
-            const row = expectRecord(item, `channels[${index}]`);
-            return {
-                name: expectString(row.name, `channels[${index}].name`),
-                priority: expectNumber(row.priority, `channels[${index}].priority`),
-                how_to_find: expectString(row.how_to_find, `channels[${index}].how_to_find`),
-                success_rate: expectEnum(
-                    row.success_rate,
-                    ['high', 'medium', 'low'] as const,
-                    `channels[${index}].success_rate`
-                ),
-            };
-        }),
+        channels,
         greetings: {
             professional: {
-                style: expectEnum(professional.style, ['专业风'] as const, 'greetings.professional.style'),
-                target: expectString(professional.target, 'greetings.professional.target'),
-                content: expectString(professional.content, 'greetings.professional.content'),
-                word_count: expectNumber(professional.word_count, 'greetings.professional.word_count'),
+                style: '专业风',
+                target: professionalTarget,
+                content: professionalContent,
+                word_count: normalizeWordCount(
+                    pickField(professional, ['word_count', 'wordCount']),
+                    professionalContent,
+                    'greetings.professional.word_count'
+                ),
             },
             passionate: {
-                style: expectEnum(passionate.style, ['热情风'] as const, 'greetings.passionate.style'),
-                target: expectString(passionate.target, 'greetings.passionate.target'),
-                content: expectString(passionate.content, 'greetings.passionate.content'),
-                word_count: expectNumber(passionate.word_count, 'greetings.passionate.word_count'),
+                style: '热情风',
+                target: passionateTarget,
+                content: passionateContent,
+                word_count: normalizeWordCount(
+                    pickField(passionate, ['word_count', 'wordCount']),
+                    passionateContent,
+                    'greetings.passionate.word_count'
+                ),
             },
             concise: {
-                style: expectEnum(concise.style, ['简洁风'] as const, 'greetings.concise.style'),
-                target: expectString(concise.target, 'greetings.concise.target'),
-                content: expectString(concise.content, 'greetings.concise.content'),
-                word_count: expectNumber(concise.word_count, 'greetings.concise.word_count'),
+                style: '简洁风',
+                target: conciseTarget,
+                content: conciseContent,
+                word_count: normalizeWordCount(
+                    pickField(concise, ['word_count', 'wordCount']),
+                    conciseContent,
+                    'greetings.concise.word_count'
+                ),
             },
         },
     };

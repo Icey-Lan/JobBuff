@@ -1,0 +1,28 @@
+.trial-stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.trial-header {
+    text-align: center;
+    padding: var(--space-lg);
+    background-color: var(--color-card-white);
+    border: var(--border-default);
+}
+
+.trial-header h2 {
+    margin-bottom: var(--space-sm);
+}
+
+.trial-header p {
+    color: var(--color-pixel-gray-dark);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.interview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}

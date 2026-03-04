@@ -41,7 +41,7 @@ export async function generateJSON<T>(
 
     try {
         return JSON.parse(cleanedText) as T;
-    } catch (error) {
+    } catch {
         console.error('Failed to parse LLM response as JSON:', text);
         throw new Error('AI response was not valid JSON');
     }

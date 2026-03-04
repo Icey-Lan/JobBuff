@@ -10,10 +10,12 @@ import { IconFile, IconX, IconTarget, IconRadar, IconWarning } from '@/component
 import { useAuth } from '@/components/AuthProvider';
 import { ResumeLibrary } from '@/components/features/ResumeLibrary';
 import { createResume, updateResumeUsage, ResumeData } from '@/lib/supabase/resumes';
+import { useToast } from '@/components/ui/ToastProvider';
 
 export default function NewQuestPage() {
     const router = useRouter();
     const { user, quota, refreshQuota } = useAuth();
+    const { showToast } = useToast();
 
     // Resume State - supports both library selection and new upload
     const [selectedResume, setSelectedResume] = useState<ResumeData | null>(null);
@@ -196,7 +198,8 @@ export default function NewQuestPage() {
             router.push(`/quest/${createQuestResult.quest.id}`);
         } catch (error) {
             console.error(error);
-            alert('侦察任务启动失败，请重试');
+            const message = error instanceof Error && error.message ? error.message : '侦察任务启动失败，请重试';
+            showToast(message, 'error');
         } finally {
             setIsSubmitting(false);
         }

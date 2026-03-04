@@ -25,10 +25,6 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(requestId, 400, 'Missing required fields: jd_info and user_resume');
         }
 
-        if (!process.env.LLM_API_KEY) {
-            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
-        }
-
         const userPrompt = getActionPlanUserPrompt(
             body.jd_info,
             JSON.stringify(body.match_analysis || {}),
@@ -42,7 +38,11 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error(`[${requestId}] Error in action-plan:`, error);
         if (error instanceof SchemaValidationError) {
-            return createErrorResponse(requestId, 502, 'Invalid AI response schema');
+            const message =
+                process.env.NODE_ENV === 'development'
+                    ? `Invalid AI response schema: ${error.message}`
+                    : 'Invalid AI response schema';
+            return createErrorResponse(requestId, 502, message);
         }
         return createErrorResponse(requestId, 500, 'Internal server error');
     }

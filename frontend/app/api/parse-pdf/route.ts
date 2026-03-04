@@ -53,10 +53,6 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(requestId, 413, 'File too large');
         }
 
-        if (!process.env.LLM_API_KEY) {
-            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
-        }
-
         const ocrEndpoint = 'https://aihubmix.com/v1/qianfan/ocr';
 
         const fileName = body.file_name.toLowerCase();

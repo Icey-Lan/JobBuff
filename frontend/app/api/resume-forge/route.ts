@@ -27,10 +27,6 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(requestId, 400, 'Missing required fields: original_resume and target_jd');
         }
 
-        if (!process.env.LLM_API_KEY) {
-            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
-        }
-
         const userPrompt = getForgeUserPrompt(
             body.original_resume,
             body.target_jd,

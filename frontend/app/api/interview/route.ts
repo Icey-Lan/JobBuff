@@ -25,10 +25,6 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(requestId, 400, 'Missing required fields: jd_info and user_resume');
         }
 
-        if (!process.env.LLM_API_KEY) {
-            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
-        }
-
         const userPrompt = getInterviewUserPrompt(
             body.jd_info,
             JSON.stringify(body.jd_analysis || {}),

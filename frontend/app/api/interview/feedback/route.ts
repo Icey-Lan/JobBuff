@@ -25,10 +25,6 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(requestId, 400, 'Missing required fields: question and user_answer');
         }
 
-        if (!process.env.LLM_API_KEY) {
-            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
-        }
-
         const userPrompt = getFeedbackUserPrompt(
             body.question,
             body.key_points || [],

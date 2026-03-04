@@ -276,6 +276,45 @@
 }
 
 /* Security Section */
+.securityPanel {
+    background: var(--color-card-white);
+    border: var(--border-default);
+    padding: 1rem;
+}
+
+.passwordForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.passwordRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.passwordLabel {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.passwordInput {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 2px solid var(--color-pixel-gray);
+    border-radius: 6px;
+    background: var(--color-pixel-gray-light);
+    color: var(--color-text-primary);
+}
+
+.passwordInput:focus {
+    outline: none;
+    border-color: var(--color-buff-orange);
+    background: var(--color-card-white);
+}
+
 .securityActions {
     display: flex;
     gap: 1rem;
@@ -285,6 +324,12 @@
 .securityActions button {
     flex: 1;
     min-width: 150px;
+}
+
+.passwordHint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
 }
 
 /* Responsive */

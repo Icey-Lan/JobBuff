@@ -1,0 +1,47 @@
+.error-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 144, 68, 0.25), transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(62, 123, 250, 0.18), transparent 50%),
+    var(--color-paper-canvas);
+}
+
+.error-card {
+  width: min(680px, 100%);
+  border: var(--border-default);
+  box-shadow: var(--shadow-lg);
+  background: var(--color-card-white);
+  padding: 28px;
+}
+
+.error-title {
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+}
+
+.error-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-pixel-gray-dark);
+  margin-bottom: 18px;
+}
+
+.error-debug {
+  margin-top: 14px;
+  padding: 10px;
+  border: var(--border-default);
+  background: #f8f6ef;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: #6b4a00;
+  word-break: break-all;
+}
+
+.error-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}

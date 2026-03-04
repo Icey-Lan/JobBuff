@@ -20,6 +20,8 @@ import { PixelCard } from '@/components/ui/PixelCard';
 import { IconScroll, IconRadar, IconTarget, IconX, IconTrendingUp, IconPieChart } from '@/components/icons';
 import { useAuth } from '@/components/AuthProvider';
 import { getUserQuests, deleteQuest } from '@/lib/supabase/quests';
+import { useToast } from '@/components/ui/ToastProvider';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface QuestSummary {
     id: string;
@@ -38,12 +40,26 @@ interface LogStats {
     weeklyNew: number;
 }
 
+interface TrendPoint {
+    name: string;
+    score: number;
+    fullDate: string;
+}
+
+interface DistributionPoint {
+    name: string;
+    count: number;
+    color: string;
+}
+
 export default function LogPage() {
     const { user } = useAuth();
+    const { showToast } = useToast();
+    const { confirm } = useConfirm();
     const [quests, setQuests] = useState<QuestSummary[]>([]);
     const [stats, setStats] = useState<LogStats>({ totalQuests: 0, avgScore: 0, completedForges: 0, weeklyNew: 0 });
-    const [chartData, setChartData] = useState<any[]>([]);
-    const [distData, setDistData] = useState<any[]>([]);
+    const [chartData, setChartData] = useState<TrendPoint[]>([]);
+    const [distData, setDistData] = useState<DistributionPoint[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -127,21 +143,29 @@ export default function LogPage() {
     }, [user]);
 
     const handleDelete = async (id: string) => {
-        if (confirm('确定要删除这个任务吗？')) {
-            const { error } = await deleteQuest(id);
-            if (error) {
-                alert('删除失败');
-                return;
-            }
-            const newQuests = quests.filter(q => q.id !== id);
-            setQuests(newQuests);
+        const accepted = await confirm({
+            title: '删除任务',
+            message: '确定要删除这个任务吗？删除后无法恢复。',
+            confirmText: '删除',
+            cancelText: '取消',
+            danger: true,
+        });
+        if (!accepted) return;
 
-            // Re-calc stats (simplified for deletion)
-            setStats(prev => ({
-                ...prev,
-                totalQuests: prev.totalQuests - 1
-            }));
+        const { error } = await deleteQuest(id);
+        if (error) {
+            showToast('删除失败，请稍后重试', 'error');
+            return;
         }
+        const newQuests = quests.filter(q => q.id !== id);
+        setQuests(newQuests);
+
+        // Re-calc stats (simplified for deletion)
+        setStats(prev => ({
+            ...prev,
+            totalQuests: prev.totalQuests - 1
+        }));
+        showToast('任务已删除', 'success');
     };
 
     const formatDate = (dateString: string) => {

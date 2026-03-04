@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isInitializedRef = useRef(false);
     const isFetchingQuotaRef = useRef(false);
 
-    const fetchQuota = async (userId: string) => {
+    const fetchQuota = useCallback(async (userId: string) => {
         // 防止并发请求
         if (isFetchingQuotaRef.current) {
             console.log('[AuthProvider] Already fetching quota, skipping');
@@ -90,13 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } finally {
             isFetchingQuotaRef.current = false;
         }
-    };
+    }, [supabase]);
 
-    const refreshQuota = async () => {
+    const refreshQuota = useCallback(async () => {
         if (user) {
             await fetchQuota(user.id);
         }
-    };
+    }, [fetchQuota, user]);
 
     useEffect(() => {
         // 订阅 auth 状态变化 - 这是唯一处理 auth 的地方
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             subscription.unsubscribe();
         };
-    }, []);
+    }, [fetchQuota, supabase]);
 
     // 监听 user 变化，标记已初始化
     useEffect(() => {

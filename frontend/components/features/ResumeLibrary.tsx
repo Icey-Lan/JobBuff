@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styles from './ResumeLibrary.module.css';
 import { IconFile, IconUpload, IconTrash, IconChevronDown } from '@/components/icons';
 import { getUserResumes, deleteResume, ResumeData } from '@/lib/supabase/resumes';
+import { useToast } from '@/components/ui/ToastProvider';
 
 // Supported file formats
 const SUPPORTED_FORMATS = ['.pdf', '.docx', '.doc', '.md', '.txt'];
@@ -25,6 +26,7 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { showToast } = useToast();
 
     // Load resumes on mount
     useEffect(() => {
@@ -41,7 +43,7 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
             setIsLoading(false);
         };
         loadResumes();
-    }, [userId]);
+    }, [userId, onSelect, selectedResumeId]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -76,6 +78,9 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
                 if (selectedResumeId === resumeId) {
                     onSelect(newResumes.length > 0 ? newResumes[0] : null);
                 }
+                showToast('简历已删除', 'success');
+            } else {
+                showToast('删除简历失败，请稍后重试', 'error');
             }
             setDeleteConfirm(null);
         } else {
@@ -93,14 +98,21 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
 
             // Validate file format
             if (!SUPPORTED_FORMATS.includes(ext)) {
-                alert(`❌ 不支持的文件格式「${ext}」\n\n支持的格式：${SUPPORTED_FORMATS_DISPLAY}\n\n提示：如果你的文件是 .doc 格式，建议先用 Word 另存为 .docx 格式后再上传。`);
+                showToast(
+                    `不支持的文件格式「${ext}」\n支持格式：${SUPPORTED_FORMATS_DISPLAY}\n提示：.doc 建议另存为 .docx 后上传。`,
+                    'error',
+                    4200
+                );
                 if (fileInputRef.current) fileInputRef.current.value = '';
                 return;
             }
 
             // Validate file size
             if (file.size > MAX_FILE_SIZE_BYTES) {
-                alert(`❌ 文件大小超出限制\n\n当前文件：${(file.size / 1024 / 1024).toFixed(1)}MB\n上限：${MAX_FILE_SIZE_MB}MB`);
+                showToast(
+                    `文件大小超出限制，当前 ${(file.size / 1024 / 1024).toFixed(1)}MB，上限 ${MAX_FILE_SIZE_MB}MB`,
+                    'error'
+                );
                 if (fileInputRef.current) fileInputRef.current.value = '';
                 return;
             }
@@ -121,7 +133,7 @@ export function ResumeLibrary({ userId, onSelect, onNewUpload, selectedResumeId 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return '从未使用';
         const date = new Date(dateStr);
-        const diff = Date.now() - date.getTime();
+        const diff = new Date().getTime() - date.getTime();
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         if (days === 0) return '今天';
         if (days === 1) return '昨天';

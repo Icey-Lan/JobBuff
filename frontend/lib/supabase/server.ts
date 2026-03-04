@@ -1,9 +1,10 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 // Check if environment variables are available
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+type ServerSupabaseClient = ReturnType<typeof createServerClient>;
 
 // Create a mock client for build time when env vars are not available
 const createMockServerClient = () => ({
@@ -25,7 +26,7 @@ export async function createServerSupabase() {
     // Return mock client during build if env vars are missing
     if (!supabaseUrl || !supabaseAnonKey) {
         console.warn('[Supabase Server] Environment variables not available, using mock client');
-        return createMockServerClient() as any;
+        return createMockServerClient() as unknown as ServerSupabaseClient;
     }
 
     const cookieStore = await cookies();

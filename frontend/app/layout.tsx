@@ -6,6 +6,8 @@ import { PixelBackground } from "@/components/shared/PixelBackground";
 import { AuthProvider } from "@/components/AuthProvider";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AbortErrorSuppressor } from "@/components/AbortErrorSuppressor";
+import { ToastProvider } from "@/components/ui/ToastProvider";
+import { ConfirmProvider } from "@/components/ui/ConfirmProvider";
 
 export const metadata: Metadata = {
   title: "JobBuff (职场外挂) - AI 求职辅助神器",
@@ -24,15 +26,18 @@ export default function RootLayout({
         <GoogleAnalytics />
         <AbortErrorSuppressor />
         <AuthProvider>
-          <PixelBackground />
-          <Navbar />
-          <main style={{ minHeight: 'calc(100vh - 120px)' }}>
-            {children}
-          </main>
-          <Footer />
+          <ToastProvider>
+            <ConfirmProvider>
+              <PixelBackground />
+              <Navbar />
+              <main style={{ minHeight: 'calc(100vh - 120px)' }}>
+                {children}
+              </main>
+              <Footer />
+            </ConfirmProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
   );
 }
-

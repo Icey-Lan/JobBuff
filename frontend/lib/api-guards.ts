@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { consumeRateLimit } from '@/lib/rate-limit';
 
 type GuardProfile = 'llm' | 'ocr' | 'mutation';
+type EnvKey = 'LLM_API_KEY';
 
 interface GuardLimit {
     limit: number;
@@ -12,16 +13,19 @@ interface GuardLimit {
 interface GuardConfig {
     user: GuardLimit;
     ip: GuardLimit;
+    requiredEnvKeys?: EnvKey[];
 }
 
 const GUARD_CONFIGS: Record<GuardProfile, GuardConfig> = {
     llm: {
         user: { limit: 15, windowMs: 60_000 },
         ip: { limit: 45, windowMs: 60_000 },
+        requiredEnvKeys: ['LLM_API_KEY'],
     },
     ocr: {
         user: { limit: 6, windowMs: 60_000 },
         ip: { limit: 18, windowMs: 60_000 },
+        requiredEnvKeys: ['LLM_API_KEY'],
     },
     mutation: {
         user: { limit: 20, windowMs: 60_000 },
@@ -56,6 +60,11 @@ function getClientIp(request: NextRequest): string {
 
 function getRequestId(request: NextRequest): string {
     return request.headers.get('x-request-id') || crypto.randomUUID();
+}
+
+function isEnvReady(envKey: EnvKey): boolean {
+    const envValue = process.env[envKey];
+    return typeof envValue === 'string' && envValue.trim().length > 0;
 }
 
 interface ErrorResponseOptions {
@@ -132,6 +141,13 @@ export async function enforceApiGuard(
             response: createErrorResponse(requestId, 429, 'Too Many Requests', {
                 retryAfterSeconds: ipLimit.retryAfterSeconds,
             }),
+        };
+    }
+
+    if (config.requiredEnvKeys?.some((envKey) => !isEnvReady(envKey))) {
+        return {
+            ok: false,
+            response: createErrorResponse(requestId, 500, 'Service temporarily unavailable'),
         };
     }
 

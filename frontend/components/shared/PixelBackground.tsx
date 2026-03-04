@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useSyncExternalStore } from 'react';
 import styles from './PixelBackground.module.css';
 
 interface Shape {
@@ -44,49 +44,52 @@ const SquareIcon = ({ color, filled }: { color: string; filled: boolean }) => (
     </svg>
 );
 
-export function PixelBackground() {
-    const [shapes, setShapes] = useState<Shape[]>([]);
-    const [isClient, setIsClient] = useState(false);
+function generateShapes(): Shape[] {
+    const generatedShapes: Shape[] = [];
+    const count = 40;
+    const colors = [
+        'var(--color-buff-orange)',
+        'var(--color-loot-green)',
+        'var(--color-mana-blue)',
+        'var(--color-trap-red)',
+        'var(--color-ink-black)',
+        'var(--color-ink-black)',
+        '#AAAAAA',
+    ];
 
-    useEffect(() => {
-        setIsClient(true);
-        const generatedShapes: Shape[] = [];
-        const count = 40; // Slightly reduced count as they are bigger
+    for (let i = 0; i < count; i++) {
+        const bias = Math.random();
+        const yPos = Math.floor(Math.pow(bias, 1.5) * 45);
+        const typeRandom = Math.random();
+        let type: 'arrow' | 'plus' | 'square' = 'square';
 
-        // Increased variety of colors including standard black/gray
-        const colors = [
-            'var(--color-buff-orange)',
-            'var(--color-loot-green)',
-            'var(--color-mana-blue)',
-            'var(--color-trap-red)',
-            'var(--color-ink-black)',
-            'var(--color-ink-black)', // Weight black slightly higher
-            '#AAAAAA'
-        ];
-
-        for (let i = 0; i < count; i++) {
-            const bias = Math.random();
-            // yPos logic: heavier bias to bottom (0-40% height mostly)
-            const yPos = Math.floor(Math.pow(bias, 1.5) * 45);
-
-            const typeRandom = Math.random();
-            let type: 'arrow' | 'plus' | 'square' = 'square';
-            if (typeRandom > 0.6) type = 'arrow';
-            else if (typeRandom > 0.3) type = 'plus';
-
-            generatedShapes.push({
-                id: i,
-                type,
-                x: Math.random() * 98, // 0-98% width
-                y: yPos + 2, // Bottom padding
-                // Increased size range: 1.2x to 2.2x (was 0.8x to 1.2x)
-                size: Math.random() * 1.0 + 1.2,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                filled: Math.random() > 0.6, // More outlines than fills
-            });
+        if (typeRandom > 0.6) {
+            type = 'arrow';
+        } else if (typeRandom > 0.3) {
+            type = 'plus';
         }
-        setShapes(generatedShapes);
-    }, []);
+
+        generatedShapes.push({
+            id: i,
+            type,
+            x: Math.random() * 98,
+            y: yPos + 2,
+            size: Math.random() * 1.0 + 1.2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            filled: Math.random() > 0.6,
+        });
+    }
+
+    return generatedShapes;
+}
+
+export function PixelBackground() {
+    const isClient = useSyncExternalStore(
+        () => () => { },
+        () => true,
+        () => false
+    );
+    const shapes = useMemo(() => (isClient ? generateShapes() : []), [isClient]);
 
     if (!isClient) return null;
 

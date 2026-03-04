@@ -26,10 +26,6 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(requestId, 400, 'Missing required fields: jd_text and resume_text');
         }
 
-        if (!process.env.LLM_API_KEY) {
-            return createErrorResponse(requestId, 500, 'Service temporarily unavailable');
-        }
-
         const userPrompt = getIntelUserPrompt(
             body.jd_text,
             body.resume_text,

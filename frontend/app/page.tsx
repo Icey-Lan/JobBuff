@@ -7,14 +7,12 @@ import styles from './page.module.css';
 import { translations, Language } from './translations';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { PixelCard } from '@/components/ui/PixelCard';
-import { GlitchCard } from '@/components/ui/GlitchCard';
 import {
     IconRadar,
     IconHammer,
     IconSword,
     IconTarget,
     IconScroll,
-    IconLightning,
     IconCheck,
     IconChevronDown,
     IconRocket,
@@ -76,7 +74,6 @@ export default function LandingPage() {
     const renderTypedTitle = () => {
         const title = t.hero.title;
         const highlight = t.hero.titleHighlight;
-        const end = t.hero.titleEnd;
 
         const titleLen = title.length;
         const highlightLen = highlight.length;

@@ -1,16 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { useAuth } from '@/components/AuthProvider';
 import { PixelCard } from '@/components/ui/PixelCard';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { IconGamepad, IconLightning, IconUser, IconRocket, IconShield } from '@/components/icons';
+import { useToast } from '@/components/ui/ToastProvider';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ProfilePage() {
     const router = useRouter();
     const { user, quota, loading, signOut } = useAuth();
+    const { showToast } = useToast();
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
     // Format date
     const formatDate = (dateString: string | undefined) => {
@@ -24,8 +30,9 @@ export default function ProfilePage() {
 
     // Calculate quota percentage
     const getQuotaPercentage = () => {
-        if (!quota) return 0;
-        return Math.round((quota.usedQuota / quota.freeQuota) * 100);
+        if (!quota || quota.freeQuota <= 0) return 0;
+        const ratio = (quota.usedQuota / quota.freeQuota) * 100;
+        return Math.max(0, Math.min(100, Math.round(ratio)));
     };
 
     // Handle sign out
@@ -34,11 +41,48 @@ export default function ProfilePage() {
         router.push('/');
     };
 
-    // Handle password reset
-    const handlePasswordReset = () => {
-        // TODO: Implement password reset flow
-        alert('密码修改功能即将上线');
+    const handlePasswordReset = async () => {
+        if (!newPassword || !confirmPassword) {
+            showToast('请完整填写新密码和确认密码', 'error');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            showToast('新密码至少需要 6 位字符', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast('两次输入的密码不一致', 'error');
+            return;
+        }
+
+        setIsUpdatingPassword(true);
+        try {
+            const supabase = createClient();
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+            if (error) {
+                showToast(error.message || '密码更新失败，请稍后重试', 'error');
+                return;
+            }
+
+            setNewPassword('');
+            setConfirmPassword('');
+            showToast('密码已更新', 'success');
+        } catch (error) {
+            console.error(error);
+            showToast('密码更新失败，请稍后重试', 'error');
+        } finally {
+            setIsUpdatingPassword(false);
+        }
     };
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [loading, router, user]);
 
     if (loading) {
         return (
@@ -54,7 +98,6 @@ export default function ProfilePage() {
     }
 
     if (!user) {
-        router.push('/login');
         return null;
     }
 
@@ -182,19 +225,50 @@ export default function ProfilePage() {
                     <IconShield size={20} color="var(--color-buff-orange)" />
                     账户安全
                 </h2>
-                <div className={styles.securityActions}>
-                    <RetroButton
-                        variant="secondary"
-                        onClick={handlePasswordReset}
-                    >
-                        修改密码
-                    </RetroButton>
-                    <RetroButton
-                        variant="danger"
-                        onClick={handleSignOut}
-                    >
-                        退出登录
-                    </RetroButton>
+                <div className={styles.securityPanel}>
+                    <div className={styles.passwordForm}>
+                        <div className={styles.passwordRow}>
+                            <label className={styles.passwordLabel} htmlFor="new-password">新密码</label>
+                            <input
+                                id="new-password"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className={styles.passwordInput}
+                                placeholder="至少 6 位字符"
+                                autoComplete="new-password"
+                            />
+                        </div>
+                        <div className={styles.passwordRow}>
+                            <label className={styles.passwordLabel} htmlFor="confirm-password">确认新密码</label>
+                            <input
+                                id="confirm-password"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className={styles.passwordInput}
+                                placeholder="再次输入新密码"
+                                autoComplete="new-password"
+                            />
+                        </div>
+                        <div className={styles.securityActions}>
+                            <RetroButton
+                                variant="secondary"
+                                onClick={handlePasswordReset}
+                                disabled={isUpdatingPassword}
+                            >
+                                {isUpdatingPassword ? '更新中...' : '更新密码'}
+                            </RetroButton>
+                            <RetroButton
+                                variant="danger"
+                                onClick={handleSignOut}
+                                disabled={isUpdatingPassword}
+                            >
+                                退出登录
+                            </RetroButton>
+                        </div>
+                        <p className={styles.passwordHint}>修改后请使用新密码重新登录。</p>
+                    </div>
                 </div>
             </section>
         </div>

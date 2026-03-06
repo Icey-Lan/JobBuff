@@ -24,7 +24,7 @@ export const INTEL_SYSTEM_PROMPT = `你是一位拥有 20 年招聘经验的职�
 - 短板要如实指出，但也给出弥补建议`;
 
 export function getIntelUserPrompt(jdText: string, resumeText: string, targetPosition: string, targetSalary: string) {
-    return `## 任务
+  return `## 任务
 对目标 JD 进行深度分析，并评估用户简历的匹配程度。一次性输出全部结果。
 ## 输入信息
 - **JD 原文**：${jdText}
@@ -121,16 +121,16 @@ export const FORGE_SYSTEM_PROMPT = `你是一位拥有 20 年招聘经验的资�
 - **允许**：对已有经历进行润色、重组、提炼，但不得凭空捏造。
 - **允许**：基于真实经历合理估算数据（需标注"建议用户确认"）。
 
-### 铁律 2：关键词前缀
+### 铁律 2：关键词加粗
 
-每条 Bullet 必须以**关键词**开头进行概括，便于 HR 快速扫描。
+每条 Bullet 必须以**加粗关键词**开头进行概括，便于 HR 快速扫描。
 
-**格式**：\`【关键词】：具体描述\`
+**格式**：\`**关键词**：具体描述\`
 
 **示例**：
-- \`【模型评测】：为业务寻找最优性价比的 API 方案，构建四维指标体系，评测 15+ 主流 LLM...\`
-- \`【Agent 开发】：为解决内容产出效率瓶颈，基于 Coze 搭建自动化撰稿 Agent...\`
-- \`【数据治理】：针对日均亿级数据吞吐，设计自动化校验工具拦截异常数据...\`
+- \`**模型评测**：为业务寻找最优性价比的 API 方案，构建四维指标体系，评测 15+ 主流 LLM...\`
+- \`**Agent 开发**：为解决内容产出效率瓶颈，基于 Coze 搭建自动化撰稿 Agent...\`
+- \`**数据治理**：针对日均亿级数据吞吐，设计自动化校验工具拦截异常数据...\`
 
 ### 铁律 3：自然的问题导向
 
@@ -163,7 +163,7 @@ export const FORGE_SYSTEM_PROMPT = `你是一位拥有 20 年招聘经验的资�
 > "负责用户画像产品设计"
 
 **输出（锻造后）**：
-> "【用户画像】：公司精准营销缺乏统一标签体系，主导设计三层标签架构（基础/行为/算法），支撑 50+ 业务场景，营销 ROI 提升 35%。"
+> "**用户画像**：公司精准营销缺乏统一标签体系，主导设计三层标签架构（基础/行为/算法），支撑 50+ 业务场景，营销 ROI 提升 35%。"
 
 ### 原则 3：量化但诚实
 
@@ -172,14 +172,14 @@ export const FORGE_SYSTEM_PROMPT = `你是一位拥有 20 年招聘经验的资�
 - 对需要用户确认的数据，标注 \`needs_user_confirm: true\``;
 
 export function getForgeUserPrompt(originalResume: string, targetJd: string, jdAnalysis: string, matchAnalysis: string, targetStyle: string = 'auto') {
-    return `## 任务
+  return `## 任务
 
 请对用户简历进行深度锻造。
 
 ## 核心要求
 
 1. **严守事实**：只能基于用户原始简历中的内容进行优化，绝不添加不存在的技能或经历。
-2. **关键词前缀**：每条 Bullet 以【关键词】开头。
+2. **关键词加粗**：每条 Bullet 以**加粗关键词**开头。
 3. **自然表达**：展示问题背景，但保持可读性，不要机械地每句"为了xxx"。
 4. **句子级 Diff**：每个改动点精确到句子，附带修改理由。
 
@@ -214,7 +214,7 @@ export function getForgeUserPrompt(originalResume: string, targetJd: string, jdA
       "title": "string",
       "issue": "string (原描述的问题)",
       "before": "string (原句)",
-      "after": "string (锻造后的句子，以【关键词】开头)",
+      "after": "string (锻造后的句子，以**加粗关键词**开头)",
       "rationale": "string (为什么这样改)",
       "is_fabrication": false,
       "fabrication_warning": "string | null (如果涉及添加内容，警告用户确认)",
@@ -232,7 +232,7 @@ export function getForgeUserPrompt(originalResume: string, targetJd: string, jdA
         "title": "string",
         "period": "string",
         "overview": "string",
-        "achievements": ["string (每条以【关键词】开头)"]
+        "achievements": ["string (每条以**加粗关键词**开头)"]
       }
     ],
     "projects": [],
@@ -283,7 +283,7 @@ export const ACTION_PLAN_SYSTEM_PROMPT = `你是一位求职策略专家，擅�
 - 控制在 100 字以内（平台打招呼）/ 200 字以内（内推消息）`;
 
 export function getActionPlanUserPrompt(jdInfo: string, matchAnalysis: string, userResume: string) {
-    return `## 任务
+  return `## 任务
 
 生成投递策略和开场话术。
 
@@ -363,7 +363,7 @@ export const INTERVIEW_SYSTEM_PROMPT = `你是一位资深面试官，拥有 15 
 3. **鼓励为主**：先肯定做得好的部分，再提改进建议。`;
 
 export function getInterviewUserPrompt(jdInfo: string, jdAnalysis: string, userResume: string) {
-    return `## 任务
+  return `## 任务
 
 基于 JD 生成 5 道面试题和参考答案。
 
@@ -411,7 +411,7 @@ export const FEEDBACK_SYSTEM_PROMPT = `你是一位资深面试官，拥有 15 �
 3. **鼓励为主**：先肯定做得好的部分，再提改进建议。`;
 
 export function getFeedbackUserPrompt(question: string, keyPoints: string[], userAnswer: string) {
-    return `## 任务
+  return `## 任务
 
 对用户的面试回答进行点评。
 

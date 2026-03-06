@@ -83,6 +83,22 @@ function expectEnum<T extends string>(
     return value as T;
 }
 
+function expectEnumInsensitive<T extends string>(
+    value: unknown,
+    allowed: readonly T[],
+    path: string
+): T {
+    if (typeof value !== 'string') {
+        throw new SchemaValidationError(`${path} must be a string`);
+    }
+    const lower = value.trim().toLowerCase();
+    const match = allowed.find((a) => a.toLowerCase() === lower);
+    if (match) {
+        return match;
+    }
+    throw new SchemaValidationError(`${path} must be one of: ${allowed.join(', ')}`);
+}
+
 function pickField(record: JsonRecord, keys: string[]): unknown {
     for (const key of keys) {
         const value = record[key];
@@ -185,15 +201,76 @@ function normalizeWordCount(value: unknown, content: string, path: string): numb
 }
 
 function parseRiskFlags(value: unknown, path: string): Array<{ signal: string; evidence: string; meaning: string }> {
-    const array = expectArray(value, path);
-    return array.map((item, index) => {
-        const row = expectRecord(item, `${path}[${index}]`);
-        return {
-            signal: expectString(row.signal, `${path}[${index}].signal`),
-            evidence: expectString(row.evidence, `${path}[${index}].evidence`),
-            meaning: expectString(row.meaning, `${path}[${index}].meaning`),
-        };
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return value.flatMap((item, index) => {
+        if (!isRecord(item)) {
+            return [];
+        }
+        const signal = typeof item.signal === 'string' && item.signal.trim() ? item.signal.trim() : null;
+        if (!signal) {
+            return [];
+        }
+        return [{
+            signal,
+            evidence: typeof item.evidence === 'string' && item.evidence.trim() ? item.evidence.trim() : signal,
+            meaning: typeof item.meaning === 'string' && item.meaning.trim() ? item.meaning.trim() : signal,
+        }];
     });
+}
+
+function normalizeOverallRisk(value: unknown): 'low' | 'medium' | 'high' {
+    if (typeof value !== 'string' || !value.trim()) {
+        return 'medium';
+    }
+    const lower = value.trim().toLowerCase();
+    if (lower === 'low' || lower.includes('低')) return 'low';
+    if (lower === 'high' || lower.includes('高')) return 'high';
+    return 'medium';
+}
+
+function normalizeVsComparison(value: unknown, allowUnknown: boolean): 'below' | 'at' | 'above' | 'unknown' {
+    if (typeof value !== 'string' || !value.trim()) {
+        return allowUnknown ? 'unknown' : 'at';
+    }
+    const lower = value.trim().toLowerCase();
+    if (lower === 'below' || lower.includes('低') || lower.includes('below')) return 'below';
+    if (lower === 'above' || lower.includes('高') || lower.includes('above')) return 'above';
+    if (lower === 'at' || lower.includes('持平') || lower.includes('相当')) return 'at';
+    if (allowUnknown && (lower === 'unknown' || lower.includes('未知') || lower.includes('不确定'))) return 'unknown';
+    return allowUnknown ? 'unknown' : 'at';
+}
+
+function normalizeResumeStatus(value: unknown): 'matched' | 'partial' | 'missing' {
+    if (typeof value !== 'string' || !value.trim()) {
+        return 'partial';
+    }
+    const lower = value.trim().toLowerCase();
+    if (lower === 'matched' || lower.includes('match')) return 'matched';
+    if (lower === 'missing' || lower.includes('miss') || lower.includes('缺')) return 'missing';
+    return 'partial';
+}
+
+function normalizeRecommendation(value: unknown): '推荐投递' | '谨慎考虑' | '不建议投递' {
+    if (typeof value !== 'string' || !value.trim()) {
+        return '谨慎考虑';
+    }
+    const text = value.trim();
+    if (text.includes('推荐') && !text.includes('不')) return '推荐投递';
+    if (text.includes('不建议') || text.includes('不推荐') || text.includes('放弃')) return '不建议投递';
+    return '谨慎考虑';
+}
+
+function normalizeFeedbackScore(value: unknown): 'A (优秀)' | 'B (良好)' | 'C (及格)' | 'D (需改进)' {
+    if (typeof value !== 'string' || !value.trim()) {
+        return 'C (及格)';
+    }
+    const text = value.trim().toUpperCase();
+    if (text.startsWith('A') || text.includes('优秀') || text.includes('优')) return 'A (优秀)';
+    if (text.startsWith('B') || text.includes('良好') || text.includes('良')) return 'B (良好)';
+    if (text.startsWith('D') || text.includes('需改进') || text.includes('差') || text.includes('改进')) return 'D (需改进)';
+    return 'C (及格)';
 }
 
 export function validateIntelResponse(value: unknown): IntelResponse {
@@ -228,34 +305,22 @@ export function validateIntelResponse(value: unknown): IntelResponse {
             risk_assessment: {
                 red_flags: parseRiskFlags(riskAssessment.red_flags, 'jd_insight.risk_assessment.red_flags'),
                 yellow_flags: parseRiskFlags(riskAssessment.yellow_flags, 'jd_insight.risk_assessment.yellow_flags'),
-                overall_risk: expectEnum(
-                    riskAssessment.overall_risk,
-                    ['low', 'medium', 'high'] as const,
-                    'jd_insight.risk_assessment.overall_risk'
-                ),
+                overall_risk: normalizeOverallRisk(riskAssessment.overall_risk),
             },
             salary_analysis: {
-                range: expectString(salaryAnalysis.range, 'jd_insight.salary_analysis.range'),
-                vs_market: expectEnum(
-                    salaryAnalysis.vs_market,
-                    ['below', 'at', 'above', 'unknown'] as const,
-                    'jd_insight.salary_analysis.vs_market'
-                ),
-                vs_target: expectEnum(
-                    salaryAnalysis.vs_target,
-                    ['below', 'at', 'above'] as const,
-                    'jd_insight.salary_analysis.vs_target'
-                ),
+                range: typeof salaryAnalysis.range === 'string' && salaryAnalysis.range.trim() ? salaryAnalysis.range.trim() : '未提供',
+                vs_market: normalizeVsComparison(salaryAnalysis.vs_market, true) as 'below' | 'at' | 'above' | 'unknown',
+                vs_target: normalizeVsComparison(salaryAnalysis.vs_target, true) as 'below' | 'at' | 'above',
             },
         },
         match_analysis: {
-            overall_score: expectNumber(matchAnalysis.overall_score, 'match_analysis.overall_score'),
+            overall_score: expectNumberLike(matchAnalysis.overall_score, 'match_analysis.overall_score'),
             radar_chart: {
-                skills: expectNumber(radarChart.skills, 'match_analysis.radar_chart.skills'),
-                experience: expectNumber(radarChart.experience, 'match_analysis.radar_chart.experience'),
-                education: expectNumber(radarChart.education, 'match_analysis.radar_chart.education'),
-                industry: expectNumber(radarChart.industry, 'match_analysis.radar_chart.industry'),
-                fit: expectNumber(radarChart.fit, 'match_analysis.radar_chart.fit'),
+                skills: expectNumberLike(radarChart.skills, 'match_analysis.radar_chart.skills'),
+                experience: expectNumberLike(radarChart.experience, 'match_analysis.radar_chart.experience'),
+                education: expectNumberLike(radarChart.education, 'match_analysis.radar_chart.education'),
+                industry: expectNumberLike(radarChart.industry, 'match_analysis.radar_chart.industry'),
+                fit: expectNumberLike(radarChart.fit, 'match_analysis.radar_chart.fit'),
             },
             swot: {
                 strengths: expectStringArray(swot.strengths, 'match_analysis.swot.strengths'),
@@ -267,21 +332,13 @@ export function validateIntelResponse(value: unknown): IntelResponse {
                 const row = expectRecord(item, `match_analysis.gap_analysis[${index}]`);
                 return {
                     jd_requirement: expectString(row.jd_requirement, `match_analysis.gap_analysis[${index}].jd_requirement`),
-                    resume_status: expectEnum(
-                        row.resume_status,
-                        ['matched', 'partial', 'missing'] as const,
-                        `match_analysis.gap_analysis[${index}].resume_status`
-                    ),
+                    resume_status: normalizeResumeStatus(row.resume_status),
                     suggestion: expectNullableString(row.suggestion, `match_analysis.gap_analysis[${index}].suggestion`),
                 };
             }),
         },
         verdict: {
-            recommendation: expectEnum(
-                verdict.recommendation,
-                ['推荐投递', '谨慎考虑', '不建议投递'] as const,
-                'verdict.recommendation'
-            ),
+            recommendation: normalizeRecommendation(verdict.recommendation),
             one_line_summary: expectString(verdict.one_line_summary, 'verdict.one_line_summary'),
             key_points: expectStringArray(verdict.key_points, 'verdict.key_points'),
         },
@@ -296,7 +353,7 @@ export function validateForgeResponse(value: unknown): ForgeResponse {
 
     return {
         forge_summary: {
-            total_changes: expectNumber(summary.total_changes, 'forge_summary.total_changes'),
+            total_changes: expectNumberLike(summary.total_changes, 'forge_summary.total_changes'),
             estimated_match_boost: expectString(summary.estimated_match_boost, 'forge_summary.estimated_match_boost'),
             detected_style: expectString(summary.detected_style, 'forge_summary.detected_style'),
             key_improvements: expectStringArray(summary.key_improvements, 'forge_summary.key_improvements'),
@@ -311,7 +368,7 @@ export function validateForgeResponse(value: unknown): ForgeResponse {
                 id: typeof row.id === 'string' && row.id.trim() ? row.id.trim() : `change_${index + 1}`,
                 module: expectString(row.module, `changes[${index}].module`),
                 location: expectString(row.location, `changes[${index}].location`),
-                priority: expectEnum(row.priority, ['P0', 'P1', 'P2'] as const, `changes[${index}].priority`),
+                priority: expectEnumInsensitive(row.priority, ['P0', 'P1', 'P2'] as const, `changes[${index}].priority`),
                 title: expectString(row.title, `changes[${index}].title`),
                 issue: expectString(row.issue, `changes[${index}].issue`),
                 before: expectString(row.before, `changes[${index}].before`),
@@ -492,11 +549,7 @@ export function validateFeedbackResponse(value: unknown): FeedbackResponse {
 
     return {
         feedback: {
-            overall_score: expectEnum(
-                feedback.overall_score,
-                ['A (优秀)', 'B (良好)', 'C (及格)', 'D (需改进)'] as const,
-                'feedback.overall_score'
-            ),
+            overall_score: normalizeFeedbackScore(feedback.overall_score),
             highlights: expectStringArray(feedback.highlights, 'feedback.highlights'),
             improvements: expectStringArray(feedback.improvements, 'feedback.improvements'),
             suggestions: expectStringArray(feedback.suggestions, 'feedback.suggestions'),
